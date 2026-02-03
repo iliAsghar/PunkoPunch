@@ -16,9 +16,9 @@ class PileManager {
         
         this.uiContainer = this.scene.add.container(0, 0);
         this.parentContainer.add(this.uiContainer);
-        this.deckRect = null;
+        this.deckPileContainer = null;
         this.deckCountText = null;
-        this.discardRect = null;
+        this.discardPileContainer = null;
         this.discardCountText = null;
     }
     
@@ -102,26 +102,31 @@ class PileManager {
         const deckPileX = this.padding + this.pileWidth / 2;
         const deckPileY = height - this.padding - this.pileHeight / 2;
         
-        this.deckRect = this.scene.add.rectangle(
-            deckPileX, deckPileY, 
+        this.deckPileContainer = this.scene.add.container(deckPileX, deckPileY);
+        
+        const deckRect = this.scene.add.rectangle(
+            0, 0,
             this.pileWidth, this.pileHeight, 
             0xcccccc
         )
             .setStrokeStyle(2, 0x000000)
             .setInteractive()
             .on('pointerdown', () => this.showDeckModal())
-            .on('pointerover', function() {
-                this.setStrokeStyle(3, 0xffff00);
+            .on('pointerover', () => {
+                this.scene.tweens.add({ targets: this.deckPileContainer, scale: 1.1, duration: 100, ease: 'Power2' });
             })
-            .on('pointerout', function() {
-                this.setStrokeStyle(2, 0x000000);
+            .on('pointerout', () => {
+                this.scene.tweens.add({ targets: this.deckPileContainer, scale: 1, duration: 100, ease: 'Power2' });
             });
         
         this.deckCountText = this.scene.add.text(
-            deckPileX, deckPileY, 
+            0, 0, 
             this.deck.length.toString(),
-            { font: 'bold 24px Arial', fill: '#000000' }
+            { font: 'bold 30px Arial', fill: '#000000' }
         ).setOrigin(0.5);
+
+        this.deckPileContainer.add([deckRect, this.deckCountText]);
+        this.uiContainer.add(this.deckPileContainer);
 
         // Draw button above deck
         const drawBtnX = deckPileX;
@@ -141,26 +146,31 @@ class PileManager {
         const discardPileX = width - this.padding - this.pileWidth / 2;
         const discardPileY = height - this.padding - this.pileHeight / 2;
         
-        this.discardRect = this.scene.add.rectangle(
-            discardPileX, discardPileY, 
+        this.discardPileContainer = this.scene.add.container(discardPileX, discardPileY);
+        
+        const discardRect = this.scene.add.rectangle(
+            0, 0,
             this.pileWidth, this.pileHeight, 
             0xcccccc
         )
             .setStrokeStyle(2, 0x000000)
             .setInteractive()
             .on('pointerdown', () => this.showDiscardModal())
-            .on('pointerover', function() {
-                this.setStrokeStyle(3, 0xffff00);
+            .on('pointerover', () => {
+                this.scene.tweens.add({ targets: this.discardPileContainer, scale: 1.1, duration: 100, ease: 'Power2' });
             })
-            .on('pointerout', function() {
-                this.setStrokeStyle(2, 0x000000);
+            .on('pointerout', () => {
+                this.scene.tweens.add({ targets: this.discardPileContainer, scale: 1, duration: 100, ease: 'Power2' });
             });
         
         this.discardCountText = this.scene.add.text(
-            discardPileX, discardPileY, 
+            0, 0, 
             this.discardPile.length.toString(),
             { font: 'bold 24px Arial', fill: '#000000' }
         ).setOrigin(0.5);
+
+        this.discardPileContainer.add([discardRect, this.discardCountText]);
+        this.uiContainer.add(this.discardPileContainer);
 
         // Discard button above discard pile
         const discardBtnX = discardPileX;
@@ -178,12 +188,8 @@ class PileManager {
         
         // Add all UI elements to the container
         this.uiContainer.add([
-            this.deckRect,
-            this.deckCountText,
             drawBtn,
             drawBtnText,
-            this.discardRect,
-            this.discardCountText,
             discardBtn,
             discardBtnText
         ]);
@@ -272,7 +278,7 @@ class PileManager {
                     fontSize: 16,
                     interactive: true,
                     hoverMoveDistance: 0,
-                    hoverZoom: 1.05,
+                    hoverZoom: 1.1,
                     hoverGlow: false
                 });
                 contentContainer.add(cardObj.getContainer());
