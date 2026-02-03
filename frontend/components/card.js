@@ -15,6 +15,7 @@ class Card {
         this.onHover = options.onHover;
         this.onUnhover = options.onUnhover;
         this.onFlip = options.onFlip;
+        this.allowViewscreen = options.allowViewscreen !== false; // Default to true
         this.isFlipped = options.isFlipped || false;
         
         // Hover effect parameters
@@ -90,7 +91,7 @@ class Card {
         });
         
         this.container.on('pointerdown', (pointer) => {
-            if (pointer.rightButtonDown()) {
+            if (pointer.rightButtonDown() && this.allowViewscreen) {
                 this.showViewscreen();
             } else if (this.onFlip) {
                 this.onFlip();
@@ -201,7 +202,9 @@ class Card {
                 width: largeCardWidth,
                 height: largeCardHeight,
                 fontSize: 64,
-                interactive: true
+                interactive: true, // It's interactive to block clicks to the overlay
+                allowViewscreen: false, // Explicitly disable opening another viewscreen
+                isFlipped: this.isFlipped // Pass the flipped state to the large card
             });
             // Prevent card from closing modal on pointer down
             card.getContainer().on('pointerdown', (pointer) => {
