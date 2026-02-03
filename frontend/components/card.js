@@ -19,6 +19,8 @@ class Card {
         this.hoverMoveDistance = options.hoverMoveDistance; // How much to move on hover (0 = no move)
         this.hoverZoom = options.hoverZoom; // Scale factor on hover (1 = no zoom)
         this.hoverGlow = options.hoverGlow; // Add glow effect on hover
+        this.hoverInDuration = options.hoverInDuration || 40; // Duration for hover-in tween
+        this.hoverOutDuration = options.hoverOutDuration || 300; // Duration for hover-out tween
         
         // Create container for card + text
         this.container = this.scene.add.container(x, y);
@@ -81,7 +83,7 @@ class Card {
     onHoverStart() {
         const tweenConfig = {
             targets: [this.container],
-            duration: 40,
+            duration: this.hoverInDuration,
             ease: 'Power2.easeOut'
         };
         
@@ -110,7 +112,7 @@ class Card {
     onHoverEnd() {
         const tweenConfig = {
             targets: [this.container],
-            duration: 300,
+            duration: this.hoverOutDuration,
             ease: 'Sine.easeOut',
             y: this.y,
             scale: 1

@@ -279,7 +279,9 @@ class PileManager {
                     interactive: true,
                     hoverMoveDistance: 0,
                     hoverZoom: 1.1,
-                    hoverGlow: false
+                    hoverGlow: false,
+                    hoverInDuration: 40,
+                    hoverOutDuration: 100
                 });
                 contentContainer.add(cardObj.getContainer());
             });
