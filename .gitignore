@@ -7,13 +7,6 @@ yarn-error.log
 # These are not required to run the game.
 *.md
 
-
-# Common editor and OS files to ignore
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-
 # Environment variables
 # Should not be committed to the repository.
 .env
