@@ -37,9 +37,25 @@ class PileManager {
         if (this.deck.length > 0) {
             const card = this.deck.pop();
             this.updateDeckDisplay();
+            
+            // If deck is now empty, transfer discard pile back to deck immediately
+            if (this.deck.length === 0 && this.discardPile.length > 0) {
+                this.transferDiscardToDeck();
+            }
+            
             return card;
         }
         return null;
+    }
+    
+    /**
+     * Transfer all cards from discard pile back to deck
+     */
+    transferDiscardToDeck() {
+        this.deck = [...this.discardPile].reverse(); // Reverse to maintain order
+        this.discardPile = [];
+        this.updateDeckDisplay();
+        this.updateDiscardDisplay();
     }
     
     /**
@@ -48,6 +64,11 @@ class PileManager {
     discardCard(card) {
         this.discardPile.push(card);
         this.updateDiscardDisplay();
+        
+        // If deck is now empty, transfer discard pile back to deck immediately
+        if (this.deck.length === 0 && this.discardPile.length > 0) {
+            this.transferDiscardToDeck();
+        }
     }
     
     /**
