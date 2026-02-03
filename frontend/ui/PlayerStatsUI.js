@@ -21,10 +21,18 @@ class PlayerStatsUI {
             strokeThickness: 4
         };
 
-        this.hpText = scene.add.text(0, 0, '', textStyle);
-        this.manaText = scene.add.text(0, 30, '', textStyle);
+        const idStyle = { ...textStyle, font: '18px Arial', fill: '#cccccc' };
 
-        this.container.add([this.hpText, this.manaText]);
+        // Column 1: Player Info
+        this.nameText = scene.add.text(0, 0, '', textStyle);
+        this.idText = scene.add.text(0, 30, '', idStyle);
+
+        // Column 2: Player Stats (position to the right of player info)
+        const statsColumnX = 160;
+        this.hpText = scene.add.text(statsColumnX, 0, '', textStyle);
+        this.manaText = scene.add.text(statsColumnX, 30, '', textStyle);
+
+        this.container.add([this.nameText, this.idText, this.hpText, this.manaText]);
     }
 
     /**
@@ -33,6 +41,8 @@ class PlayerStatsUI {
      */
     update(player) {
         if (!player) return;
+        this.nameText.setText(player.name);
+        this.idText.setText(`(ID: ${player.playerId})`);
         this.hpText.setText(`HP: ${player.hp} / ${player.maxHp}`);
         this.manaText.setText(`Mana: ${player.mana} / ${player.maxMana}`);
     }

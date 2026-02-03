@@ -152,7 +152,7 @@ class GameManager {
      */
     createDebugButtons() {
         const buttonY = 30;
-        let buttonX = 220; // Start position for buttons, to the right of the stats
+        let buttonX = 360; // Start position for buttons, to the right of the stats
         const buttonSpacing = 130;
 
         // Damage Button
@@ -161,7 +161,7 @@ class GameManager {
 
         // Heal Button
         this.createTestButton(buttonX, buttonY, 'Heal 1', () => this.applyHeal(this.localPlayerId, 1));
-        buttonX = 220; // Reset X for the next row
+        buttonX = 360; // Reset X for the next row
 
         // Spend Mana Button
         this.createTestButton(buttonX, buttonY + 40, 'Spend Mana 1', () => this.applyManaCost(this.localPlayerId, 1));
