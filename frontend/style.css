@@ -1,0 +1,16 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Arial', sans-serif;
+}
+
+/* #game-container and canvas styling is handled by phaser.config.js */
+/* No additional styles are needed here for them to be centered and scaled. */

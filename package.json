@@ -1,0 +1,11 @@
+{
+  "name": "punkopunch",
+  "version": "1.0.0",
+  "description": "A real-time multiplayer card battle game built with Phaser 3",
+  "scripts": {
+    "start": "cd frontend && python -m http.server 3000"
+  },
+  "keywords": ["game", "phaser", "card-game", "multiplayer"],
+  "author": "",
+  "license": "ISC"
+}

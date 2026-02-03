@@ -1,0 +1,24 @@
+# Node.js dependencies
+/node_modules
+npm-debug.log*
+yarn-error.log
+
+# Documentation files
+# These are not required to run the game.
+*.md
+
+
+# Common editor and OS files to ignore
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Environment variables
+# Should not be committed to the repository.
+.env
+
+# Ignore the utils folder by default...
+frontend/utils/
+# ...but make an exception for the file that is actually used.
+!frontend/utils/gameUtils.js
