@@ -55,7 +55,7 @@ class Card {
 
             const flippedText = this.scene.add.text(
                 0, 0, 'XX', {
-                    font: `bold ${this.height * 0.6}px Arial`, // Make it big
+                    font: `bold ${this.height * 0.3}px Arial`, // Make it big
                     fill: '#ff0000',
                     align: 'center'
                 }
