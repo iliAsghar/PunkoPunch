@@ -10,14 +10,27 @@
 <body>
     <div id="game-container"></div>
     
+    <!-- Utilities & Data -->
     <script src="utils/gameUtils.js"></script>
     <script src="assets/cardDictionary.js"></script>
+
+    <!-- Data Models -->
+    <script src="models/Player.js"></script>
+
+    <!-- UI Components -->
+    <script src="ui/PlayerStatsUI.js"></script>
     <script src="components/card.js"></script>
-    <script src="managers/GameManager.js"></script>
+
+    <!-- Managers (dependencies first) -->
     <script src="managers/HandManager.js"></script>
     <script src="managers/PileManager.js"></script>
+    <script src="managers/GameManager.js"></script>
+    
+    <!-- Scenes -->
     <script src="scenes/MenuScene.js"></script>
     <script src="scenes/GameScene.js"></script>
+    
+    <!-- Main Game Setup -->
     <script src="phaser.config.js"></script>
     <script src="main.js"></script>
 </body>

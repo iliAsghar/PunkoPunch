@@ -8,6 +8,10 @@ class GameManager {
         this.mainContainer = mainContainer;
         this.handManager = null;
         this.pileManager = null;
+        this.players = new Map();
+        this.playerStatsUIs = new Map();
+        this.localPlayerId = 'player1'; // Assuming a local player for now
+        this.deathText = null;
     }
     
     /**
@@ -17,6 +21,18 @@ class GameManager {
         // Create managers
         this.handManager = new HandManager(this.scene, this.mainContainer);
         this.pileManager = new PileManager(this.scene, this.mainContainer);
+
+        // Create local player
+        const player = new Player(this.localPlayerId, 'Player 1', 20, 20, 6, 6);
+        this.players.set(this.localPlayerId, player);
+
+        // Create UI for the local player in the top-left corner
+        const statsUI = new PlayerStatsUI(this.scene, this.mainContainer, 30, 30);
+        statsUI.update(player);
+        this.playerStatsUIs.set(this.localPlayerId, statsUI);
+
+        // --- Add Debug Buttons ---
+        this.createDebugButtons();
         
         // Initialize deck with default cards
         const initialDeck = [
@@ -129,5 +145,157 @@ class GameManager {
      */
     getPileManager() {
         return this.pileManager;
+    }
+
+    /**
+     * Creates debug buttons for testing stats.
+     */
+    createDebugButtons() {
+        const buttonY = 30;
+        let buttonX = 220; // Start position for buttons, to the right of the stats
+        const buttonSpacing = 130;
+
+        // Damage Button
+        this.createTestButton(buttonX, buttonY, 'Damage 1', () => this.applyDamage(this.localPlayerId, 1));
+        buttonX += buttonSpacing;
+
+        // Heal Button
+        this.createTestButton(buttonX, buttonY, 'Heal 1', () => this.applyHeal(this.localPlayerId, 1));
+        buttonX = 220; // Reset X for the next row
+
+        // Spend Mana Button
+        this.createTestButton(buttonX, buttonY + 40, 'Spend Mana 1', () => this.applyManaCost(this.localPlayerId, 1));
+        buttonX += buttonSpacing;
+
+        // Gain Mana Button
+        this.createTestButton(buttonX, buttonY + 40, 'Gain Mana 1', () => this.applyManaGain(this.localPlayerId, 1));
+    }
+
+    /**
+     * Helper to create a simple test button.
+     * @param {number} x - X position.
+     * @param {number} y - Y position.
+     * @param {string} text - Button label.
+     * @param {function} onClick - Callback function.
+     */
+    createTestButton(x, y, text, onClick) {
+        const btnText = this.scene.add.text(x, y, text, {
+            font: '16px Arial',
+            fill: '#000',
+            backgroundColor: '#ddd',
+            padding: { x: 10, y: 5 }
+        })
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', onClick)
+        .on('pointerover', () => btnText.setBackgroundColor('#bbb'))
+        .on('pointerout', () => btnText.setBackgroundColor('#ddd'));
+
+        this.mainContainer.add(btnText);
+    }
+
+    /**
+     * Applies damage to a player and updates UI.
+     * @param {string} playerId 
+     * @param {number} amount 
+     */
+    applyDamage(playerId, amount) {
+        const player = this.players.get(playerId);
+        if (!player || player.hp <= 0) return;
+
+        player.takeDamage(amount);
+        this.playerStatsUIs.get(playerId)?.update(player);
+
+        if (player.hp <= 0) {
+            this.handlePlayerDeath(playerId);
+        }
+    }
+
+    /**
+     * Applies healing to a player and updates UI.
+     * @param {string} playerId 
+     * @param {number} amount 
+     */
+    applyHeal(playerId, amount) {
+        const player = this.players.get(playerId);
+        if (!player) return;
+
+        const wasDead = player.hp <= 0;
+        player.heal(amount);
+        this.playerStatsUIs.get(playerId)?.update(player);
+
+        if (wasDead && player.hp > 0) {
+            this.handlePlayerRevive(playerId);
+        }
+    }
+    /**
+     * Spends a player's mana and updates UI.
+     * @param {string} playerId 
+     * @param {number} amount 
+     */
+    applyManaCost(playerId, amount) {
+        const player = this.players.get(playerId);
+        if (!player) return;
+
+        if (player.useMana(amount)) {
+            this.playerStatsUIs.get(playerId)?.update(player);
+        }
+    }
+
+    /**
+     * Restores a player's mana and updates UI.
+     * @param {string} playerId 
+     * @param {number} amount 
+     */
+    applyManaGain(playerId, amount) {
+        const player = this.players.get(playerId);
+        if (!player) return;
+
+        player.restoreMana(amount);
+        this.playerStatsUIs.get(playerId)?.update(player);
+    }
+
+    /**
+     * Handles the game over state for a player.
+     * @param {string} playerId 
+     */
+    handlePlayerDeath(playerId) {
+        // For now, we only handle the local player's death
+        if (playerId !== this.localPlayerId) return;
+
+        // Don't do anything if already in the death state
+        if (this.deathText) return;
+
+        // Hide game elements
+        this.handManager.getContainer().setVisible(false);
+        this.pileManager.uiContainer.setVisible(false);
+
+        // Display "YOU'RE DEAD" message
+        const { width, height } = this.scene.game.config;
+        this.deathText = this.scene.add.text(width / 2, height / 2, "YOU'RE DEAD", {
+            font: 'bold 96px Arial',
+            fill: '#ff0000',
+            stroke: '#000000',
+            strokeThickness: 8
+        }).setOrigin(0.5);
+
+        this.mainContainer.add(this.deathText);
+    }
+
+    /**
+     * Handles reviving a player for debugging.
+     * @param {string} playerId 
+     */
+    handlePlayerRevive(playerId) {
+        if (playerId !== this.localPlayerId) return;
+
+        // Show game elements
+        this.handManager.getContainer().setVisible(true);
+        this.pileManager.uiContainer.setVisible(true);
+
+        // Remove "YOU'RE DEAD" message
+        if (this.deathText) {
+            this.deathText.destroy();
+            this.deathText = null;
+        }
     }
 }
