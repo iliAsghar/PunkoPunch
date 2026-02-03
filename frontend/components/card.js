@@ -20,10 +20,6 @@ class Card {
         this.hoverZoom = options.hoverZoom; // Scale factor on hover (1 = no zoom)
         this.hoverGlow = options.hoverGlow; // Add glow effect on hover
         
-        // 3D parallax effect parameters
-        this.tiltEffect = options.tiltEffect !== false;
-        this.tiltAmount = options.tiltAmount || 0.2; // Radians for tilt
-        
         // Create container for card + text
         this.container = this.scene.add.container(x, y);
         
@@ -80,12 +76,6 @@ class Card {
                 this.showViewscreen();
             }
         });
-        
-        this.container.on('pointermove', (pointer) => {
-            if (this.tiltEffect) {
-                this.handle3DTilt(pointer);
-            }
-        });
     }
     
     onHoverStart() {
@@ -120,12 +110,10 @@ class Card {
     onHoverEnd() {
         const tweenConfig = {
             targets: [this.container],
-            duration: 150,
+            duration: 300,
             ease: 'Sine.easeOut',
             y: this.y,
-            scale: 1,
-            rotationX: 0, // Reset tilt
-            rotationY: 0  // Reset tilt
+            scale: 1
         };
         
         this.scene.tweens.add(tweenConfig);
@@ -138,25 +126,6 @@ class Card {
         }
     }
     
-    /**
-     * Handles the 3D perspective tilt effect on mouse move
-     */
-    handle3DTilt(pointer) {
-        // Get pointer position relative to the card's container center
-        const { width, height, x, y } = this.container;
-        const localX = pointer.x - x;
-        const localY = pointer.y - y;
-        
-        // Normalize the position from -1 to 1
-        const normalizedX = Phaser.Math.Clamp(localX / (width / 2), -1, 1);
-        const normalizedY = Phaser.Math.Clamp(localY / (height / 2), -1, 1);
-        
-        // Apply tilt. The rotation is inverted for a natural feel.
-        // Moving mouse to the right (positive X) should lift the left edge (positive Y rotation).
-        // Moving mouse to the bottom (positive Y) should lift the top edge (negative X rotation).
-        this.container.rotationY = normalizedX * this.tiltAmount;
-        this.container.rotationX = -normalizedY * this.tiltAmount;
-    }
     
     /**
      * Show the card in a full-screen view
@@ -207,10 +176,12 @@ class Card {
                 width: largeCardWidth,
                 height: largeCardHeight,
                 fontSize: 64,
-                interactive: false
+                interactive: true
             });
-            // The parent container will be immune to scroll, so the card doesn't need to be.
-            // card.getContainer().setScrollFactor(0);
+            // Prevent card from closing modal on pointer down
+            card.getContainer().on('pointerdown', (pointer) => {
+                pointer.stopPropagation();
+            });
             return card;
         };
         
