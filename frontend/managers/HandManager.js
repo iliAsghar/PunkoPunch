@@ -21,7 +21,7 @@ class HandManager {
      * Add a card to the hand
      */
     addCard(cardId) {
-        this.drawnCards.push({ id: cardId });
+        this.drawnCards.push({ id: cardId, isFlipped: false });
         this.display();
     }
     
@@ -31,6 +31,16 @@ class HandManager {
     removeCard(index) {
         this.drawnCards.splice(index, 1);
         this.display();
+    }
+
+    /**
+     * Toggles the flipped state of a card in hand
+     */
+    toggleFlip(index) {
+        if (this.drawnCards[index]) {
+            this.drawnCards[index].isFlipped = !this.drawnCards[index].isFlipped;
+            this.display(); // Re-render the hand to show the change
+        }
     }
     
     /**
@@ -55,12 +65,12 @@ class HandManager {
      * Display/re-render the hand with curved layout and rotation
      */
     display() {
-        // Destroy old cards
-        this.cardsContainer.each((child) => {
-            child.destroy();
-        });
-        this.cardsContainer.removeAll(true);
+        // Clear the container but keep the card data in drawnCards
+        this.cardsContainer.removeAll(true); // This destroys the card game objects
         
+        // Re-create the card game objects from the data
+        const cardObjects = [];
+
         const width = this.scene.game.config.width; // Use base width
         const handY = this.scene.game.config.height - 50; // Use base height
         const cardCount = this.drawnCards.length;
@@ -100,11 +110,16 @@ class HandManager {
                 rotation: rotation,
                 interactive: true,
                 hoverMoveDistance: 30,  // Move up on hover
-                hoverZoom: 1.1          // Zoom on hover
+                hoverZoom: 1.1,         // Zoom on hover
+                isFlipped: card.isFlipped,
+                onFlip: () => {
+                    this.toggleFlip(index);
+                }
             });
-            
-            this.cardsContainer.add(cardObj.getContainer());
+            cardObjects.push(cardObj.getContainer());
         });
+
+        this.cardsContainer.add(cardObjects);
     }
     
     /**

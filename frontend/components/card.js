@@ -14,10 +14,12 @@ class Card {
         this.interactive = options.interactive !== false;
         this.onHover = options.onHover;
         this.onUnhover = options.onUnhover;
+        this.onFlip = options.onFlip;
+        this.isFlipped = options.isFlipped || false;
         
         // Hover effect parameters
-        this.hoverMoveDistance = options.hoverMoveDistance; // How much to move on hover (0 = no move)
-        this.hoverZoom = options.hoverZoom; // Scale factor on hover (1 = no zoom)
+        this.hoverMoveDistance = options.hoverMoveDistance || 0; // How much to move on hover (0 = no move)
+        this.hoverZoom = options.hoverZoom || 1; // Scale factor on hover (1 = no zoom)
         this.hoverGlow = options.hoverGlow; // Add glow effect on hover
         this.hoverInDuration = options.hoverInDuration || 40; // Duration for hover-in tween
         this.hoverOutDuration = options.hoverOutDuration || 300; // Duration for hover-out tween
@@ -46,6 +48,20 @@ class Card {
         
         // Add elements to container
         this.container.add([this.cardRect, this.valueText]);
+
+        if (this.isFlipped) {
+            this.valueText.setVisible(false); // Hide the original value
+
+            const flippedText = this.scene.add.text(
+                0, 0, 'XX', {
+                    font: `bold ${this.height * 0.6}px Arial`, // Make it big
+                    fill: '#ff0000',
+                    align: 'center'
+                }
+            ).setOrigin(0.5);
+
+            this.container.add(flippedText);
+        }
         this.container.setRotation(this.rotation);
         
         // Setup interactivity
@@ -76,6 +92,8 @@ class Card {
         this.container.on('pointerdown', (pointer) => {
             if (pointer.rightButtonDown()) {
                 this.showViewscreen();
+            } else if (this.onFlip) {
+                this.onFlip();
             }
         });
     }
@@ -114,10 +132,14 @@ class Card {
             targets: [this.container],
             duration: this.hoverOutDuration,
             ease: 'Sine.easeOut',
-            y: this.y,
             scale: 1
         };
         
+        // Only tween the y position back if it was moved in the first place
+        if (this.hoverMoveDistance !== 0) {
+            tweenConfig.y = this.y;
+        }
+
         this.scene.tweens.add(tweenConfig);
         
         // Remove glow effect
@@ -158,7 +180,8 @@ class Card {
             // Create the large card and add it to the content container
             contentContainer.add(createLargeCard().getContainer());
             
-            this.scene.onResize({ width: currentWidth, height: currentHeight }, contentContainer);
+            // Center the content container
+            contentContainer.setPosition(currentWidth / 2, currentHeight / 2);
         };
         
         // --- Helper functions to create modal elements ---
@@ -170,11 +193,11 @@ class Card {
         
         const createLargeCard = () => {
             // Size the card relative to the base resolution, not the window size
-            const largeCardHeight = this.scene.baseHeight * 0.8;
+            const largeCardHeight = this.scene.cameras.main.height * 0.8;
             const largeCardWidth = largeCardHeight * (this.width / this.height);
             
             // Position it in the center of the base resolution
-            const card = new Card(this.scene, this.scene.baseWidth / 2, this.scene.baseHeight / 2, this.cardId, {
+            const card = new Card(this.scene, 0, 0, this.cardId, {
                 width: largeCardWidth,
                 height: largeCardHeight,
                 fontSize: 64,

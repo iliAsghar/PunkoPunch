@@ -217,7 +217,7 @@ class PileManager {
      * Show deck modal with grid of cards
      */
     showDeckModal() {
-        this.showPileModal(this.deck, 'Deck');
+        this.showPileModal(this.deck, 'Draw Pile');
     }
     
     /**
@@ -231,94 +231,155 @@ class PileManager {
      * Generic modal display for viewing pile contents
      */
     showPileModal(pile, title) {
+        // --- Main container for the modal ---
         const modalContainer = this.scene.add.container(0, 0).setDepth(100).setScrollFactor(0);
 
-        const drawModalContents = () => {
-            modalContainer.removeAll(true);
+        let wheelListener = null;
 
-            const currentWidth = this.scene.cameras.main.width;
-            const currentHeight = this.scene.cameras.main.height;
-
-            // Full-screen dark overlay
-            const overlay = this.scene.add.rectangle(currentWidth / 2, currentHeight / 2, currentWidth, currentHeight, 0x000000, 0.5)
-                .setInteractive()
-                .on('pointerdown', () => closeModal());
-            modalContainer.add(overlay);
-
-            // Container for the scaled content
-            const contentContainer = this.scene.add.container(0, 0);
-            modalContainer.add(contentContainer);
-
-            // Title
-            const titleText = this.scene.add.text(this.scene.baseWidth / 2, 50, title, {
-                font: 'bold 48px Arial',
-                fill: '#ffffff'
-            }).setOrigin(0.5);
-            contentContainer.add(titleText);
-
-            // Grid parameters
-            const margin = 40;
-            const cardWidth = 100;
-            const cardHeight = 150;
-            const gap = 20;
-            const colsPerRow = Math.floor((this.scene.baseWidth - margin * 2) / (cardWidth + gap));
-            const gridStartX = margin;
-            const gridStartY = 120;
-
-            // Create cards grid
-            pile.forEach((card, index) => {
-                const col = index % colsPerRow;
-                const row = Math.floor(index / colsPerRow);
-                const x = gridStartX + col * (cardWidth + gap) + cardWidth / 2;
-                const y = gridStartY + row * (cardHeight + gap) + cardHeight / 2;
-
-                const cardObj = new Card(this.scene, x, y, card.id, {
-                    width: cardWidth,
-                    height: cardHeight,
-                    fontSize: 16,
-                    interactive: true,
-                    hoverMoveDistance: 0,
-                    hoverZoom: 1.1,
-                    hoverGlow: false,
-                    hoverInDuration: 40,
-                    hoverOutDuration: 100
-                });
-                contentContainer.add(cardObj.getContainer());
-            });
-
-            // Empty state
-            if (pile.length === 0) {
-                const emptyText = this.scene.add.text(this.scene.baseWidth / 2, this.scene.baseHeight / 2, 'Empty', {
-                    font: 'bold 36px Arial',
-                    fill: '#999999'
-                }).setOrigin(0.5);
-                contentContainer.add(emptyText);
-            }
-
-            // Scale the content container
-            this.scene.onResize({ width: currentWidth, height: currentHeight }, contentContainer);
-        };
-
+        // --- Helper to close the modal ---
         const closeModal = () => {
-            modalContainer.destroy();
-            this.scene.scale.off('resize', drawModalContents, this);
-            this.scene.input.keyboard.off('keydown-ESC', onEsc);
-            this.scene.input.off('wheel');
+            this.scene.tweens.add({
+                targets: modalContainer,
+                alpha: 0,
+                duration: 150,
+                onComplete: () => {
+                    modalContainer.destroy();
+                    this.scene.scale.off('resize', drawModalContents, this);
+                    this.scene.input.keyboard.off('keydown-ESC', onEsc);
+                    if (wheelListener) {
+                        this.scene.input.off('wheel', wheelListener);
+                    }
+                }
+            });
         };
 
         const onEsc = () => closeModal();
         this.scene.input.keyboard.on('keydown-ESC', onEsc);
-        
+
+        // --- Function to draw/redraw the modal contents ---
+        const drawModalContents = () => {
+            modalContainer.removeAll(true); // Clear previous contents
+            if (wheelListener) {
+                this.scene.input.off('wheel', wheelListener); // Remove old listener
+                wheelListener = null;
+            }
+
+            const { width, height } = this.scene.cameras.main;
+
+            // 1. Overlay
+            const overlay = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+                .setInteractive()
+                .on('pointerdown', closeModal);
+            modalContainer.add(overlay);
+
+            // 2. Content Box
+            const boxWidth = width * 0.85;
+            const boxHeight = height * 0.85;
+            const boxX = width / 2;
+            const boxY = height / 2;
+
+            const box = this.scene.add.graphics();
+            box.fillStyle(0xfdfdfd, 1);
+            box.fillRect(boxX - boxWidth / 2, boxY - boxHeight / 2, boxWidth, boxHeight);
+            box.lineStyle(4, 0x000000, 1);
+            box.strokeRect(boxX - boxWidth / 2, boxY - boxHeight / 2, boxWidth, boxHeight);
+            modalContainer.add(box);
+
+            // Stop clicks on the box from closing the modal
+            const boxZone = this.scene.add.zone(boxX, boxY, boxWidth, boxHeight).setInteractive();
+            boxZone.on('pointerdown', (pointer) => pointer.stopPropagation());
+            modalContainer.add(boxZone);
+
+            // 3. Title
+            const titleText = this.scene.add.text(boxX, boxY - boxHeight / 2 + 40, title, {
+                font: 'bold 32px Arial',
+                fill: '#000000',
+                align: 'center'
+            }).setOrigin(0.5);
+            modalContainer.add(titleText);
+
+            // 4. Card Grid Area
+            const gridPadding = 10; // Increased padding for more breathing room
+            const gridpaddinghorizontal = 20; // Increased horizontal padding
+            const topOffset = 90; // Increased top offset for title and padding
+            const gridWidth = boxWidth - (gridPadding * 2 + gridpaddinghorizontal * 2);
+            const gridHeight = boxHeight - topOffset - gridPadding;
+            const gridX = boxX - boxWidth / 2 + gridPadding + gridpaddinghorizontal;
+            const gridY = boxY - boxHeight / 2 + topOffset;
+
+            const cardsContainer = this.scene.add.container(gridX, gridY);
+            modalContainer.add(cardsContainer);
+
+            // Grid layout
+            const cardPreviewWidth = 100;
+            const cardPreviewHeight = 150;
+            const cardSpacingX = 20;
+            const cardSpacingY = 20;
+
+            const cols = Math.floor((gridWidth + cardSpacingX) / (cardPreviewWidth + cardSpacingX));
+            
+            // Calculate the actual width the grid content will occupy to center it.
+            const actualContentWidth = (cols * cardPreviewWidth) + Math.max(0, cols - 1) * cardSpacingX;
+            const startXOffset = (gridWidth - actualContentWidth) / 2;
+
+            let currentX = startXOffset;
+            let currentY = 10;
+
+            pile.forEach((cardData, index) => {
+                // Create card at (0,0) and add it to the container first.
+                // Then, set its position relative to the container.
+                // This avoids confusion with world vs. local coordinates.
+                const card = new Card(this.scene, 0, 0, cardData.id, {
+                    width: cardPreviewWidth,
+                    height: cardPreviewHeight,
+                    fontSize: 20,
+                    interactive: true, // Allow right-click to view
+                    hoverZoom: 1.05,
+                    hoverMoveDistance: 0
+                });
+                cardsContainer.add(card.getContainer());
+
+                // The Card component's position is its center. We calculate the center of the grid slot.
+                const cardCenterX = currentX + cardPreviewWidth / 2;
+                const cardCenterY = currentY + cardPreviewHeight / 2;
+                card.getContainer().setPosition(cardCenterX, cardCenterY);
+
+                // Move to the next grid slot
+                currentX += cardPreviewWidth + cardSpacingX;
+                if ((index + 1) % cols === 0 && index < pile.length - 1) {
+                    currentX = startXOffset;
+                    currentY += cardPreviewHeight + cardSpacingY;
+                }
+            });
+            
+            // Add padding to the bottom of the content to ensure the last row
+            // doesn't get clipped on hover/scale.
+            const contentHeight = currentY + cardPreviewHeight + gridPadding;
+
+            // 5. Scrolling & Masking
+            if (contentHeight > gridHeight) {
+                const maskShape = this.scene.make.graphics();
+                maskShape.fillStyle(0xffffff);
+                maskShape.fillRect(gridX, gridY, gridWidth, gridHeight);
+                const mask = maskShape.createGeometryMask();
+                cardsContainer.setMask(mask);
+
+                let scrollY = 0;
+                const maxScroll = contentHeight - gridHeight;
+
+                wheelListener = (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+                    if (boxZone.getBounds().contains(pointer.x, pointer.y)) {
+                        scrollY -= deltaY * 0.5;
+                        scrollY = Phaser.Math.Clamp(scrollY, -maxScroll, 0);
+                        cardsContainer.y = gridY + scrollY;
+                    }
+                };
+                this.scene.input.on('wheel', wheelListener);
+            }
+        };
+
+        // --- Initial Draw & Resize Listener ---
         drawModalContents();
         this.scene.scale.on('resize', drawModalContents, this);
-
-        // Mouse wheel scroll
-        this.scene.input.on('wheel', (pointer, over, deltaX, deltaY) => {
-            // Scroll the inner content, not the scaled container
-            const contentContainer = modalContainer.getAt(1); // The content container is the second element
-            if (contentContainer) {
-                contentContainer.y -= deltaY * 0.5;
-            }
-        });
     }
 }
