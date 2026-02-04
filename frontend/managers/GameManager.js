@@ -106,6 +106,11 @@ class GameManager {
         this.pileManager.initialize(initialDeck);
         this.pileManager.createUI();
         this.gridManager.initialize();
+
+        // Draw the initial hand of 5 cards
+        for (let i = 0; i < 5; i++) {
+            this.drawCard();
+        }
         
         // Expose to scene for button callbacks
         this.scene.gameManager = this;
