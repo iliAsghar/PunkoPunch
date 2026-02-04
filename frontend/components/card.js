@@ -22,6 +22,7 @@ class Card {
         this.onHover = options.onHover;
         this.onUnhover = options.onUnhover;
         this.onFlip = options.onFlip;
+        this.centerText = options.centerText || false; // New option to center the text
         this.allowViewscreen = options.allowViewscreen !== false; // Default to true
         this.isFlipping = false; // To prevent animation conflicts
         this.isFlipped = options.isFlipped || false;
@@ -45,16 +46,24 @@ class Card {
         );
         this.cardRect.setStrokeStyle(2, 0x000000);
         
-        // Card value text (top left)
+        // Card value text
         this.valueText = this.scene.add.text(
-            -this.width / 2 + 10, 
-            -this.height / 2 + 10,
+            0, 0, // Default to center
             this.cardInfo.value.toString(),
             {
                 font: `bold ${this.fontSize}px Arial`,
                 fill: '#000000'
             }
-        ).setOrigin(0, 0);
+        );
+
+        // Position and set origin based on the new centerText option
+        if (this.centerText) {
+            this.valueText.setOrigin(0.5, 0.5); // Center the origin
+            this.valueText.setPosition(0, 0); // Position at container's center
+        } else {
+            this.valueText.setOrigin(0, 0); // Top-left origin
+            this.valueText.setPosition(-this.width / 2 + 10, -this.height / 2 + 10); // Position in top-left corner
+        }
         
         // Add elements to container
         this.container.add([this.cardRect, this.valueText]);

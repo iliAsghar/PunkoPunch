@@ -22,18 +22,26 @@ class GridManager {
      */
     initialize() {
         this.gridCards = [];
-        const allCards = [
-            ...GRID_CARD_DATA.easy,
-            ...GRID_CARD_DATA.medium,
-            ...GRID_CARD_DATA.hard
-        ];
+        const centerCol = Math.floor(this.cols / 2);
 
         for (let i = 0; i < this.rows * this.cols; i++) {
-            // Get a random card from the available pool
-            const randomCardData = allCards[Math.floor(Math.random() * allCards.length)];
+            const col = i % this.cols;
+            let cardPool;
+
+            // Determine which card pool to use based on the column
+            if (col === centerCol) {
+                cardPool = GRID_CARD_DATA.hard;
+            } else if (Math.abs(col - centerCol) === 1) {
+                cardPool = GRID_CARD_DATA.medium;
+            } else {
+                cardPool = GRID_CARD_DATA.easy;
+            }
+
+            // Get a random card from the selected pool
+            const randomCardData = cardPool[Math.floor(Math.random() * cardPool.length)];
             this.gridCards.push({
                 id: randomCardData.id,
-                isFlipped: false // All cards start face down
+                isFlipped: true // All cards start face down
             });
         }
 
@@ -77,13 +85,14 @@ class GridManager {
             const cardObj = new Card(this.scene, x, y, cardData.id, {
                 width: this.cardSize,
                 height: this.cardSize, // Square card
-                fontSize: 40,
+                fontSize: this.cardSize * 0.5, // Make font size relative to card size
                 interactive: true,
                 isFlipped: cardData.isFlipped, 
                 hoverMoveDistance: 0, // Only scale, don't move
                 hoverZoom: 1.1,
                 // We need to tell the Card component to use the grid dictionary
                 cardInfoSource: 'grid',
+                centerText: true, // Center the value text on the card
                 // The card will call this function when it's clicked and flipped
                 onFlip: () => {
                     this.toggleFlip(index);
