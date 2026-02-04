@@ -8,6 +8,7 @@ class GameManager {
         this.mainContainer = mainContainer;
         this.handManager = null;
         this.pileManager = null;
+        this.gridManager = null;
         this.players = new Map();
         this.playerStatsUIs = new Map();
         this.localPlayerId = 'player1'; // Assuming a local player for now
@@ -21,6 +22,7 @@ class GameManager {
         // Create managers
         this.handManager = new HandManager(this.scene, this.mainContainer);
         this.pileManager = new PileManager(this.scene, this.mainContainer);
+        this.gridManager = new GridManager(this.scene, this.mainContainer);
 
         // Create local player
         const player = new Player(this.localPlayerId, 'Player 1', 20, 20, 6, 6);
@@ -99,6 +101,7 @@ class GameManager {
         
         this.pileManager.initialize(initialDeck);
         this.pileManager.createUI();
+        this.gridManager.initialize();
         
         // Expose to scene for button callbacks
         this.scene.gameManager = this;
@@ -145,6 +148,13 @@ class GameManager {
      */
     getPileManager() {
         return this.pileManager;
+    }
+
+    /**
+     * Get grid manager
+     */
+    getGridManager() {
+        return this.gridManager;
     }
 
     /**

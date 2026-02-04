@@ -4,7 +4,14 @@ class Card {
         this.x = x;
         this.y = y;
         this.cardId = cardId;
-        this.cardInfo = getCardInfo(cardId);
+
+        // Allow specifying which dictionary to use for card info
+        const cardInfoSource = options.cardInfoSource || 'player'; // 'player' or 'grid'
+        if (cardInfoSource === 'grid') {
+            this.cardInfo = getGridCardInfo(cardId);
+        } else {
+            this.cardInfo = getCardInfo(cardId);
+        }
         
         // Options
         this.width = options.width || 120;
@@ -94,12 +101,13 @@ class Card {
         });
         
         this.container.on('pointerdown', (pointer) => {
-            if (pointer.rightButtonDown() && this.allowViewscreen) {
-                this.showViewscreen();
-            } else {
-                // Directly call the internal flip method on left-click
+            if (pointer.rightButtonDown()) {
+                if (this.allowViewscreen) {
+                    this.showViewscreen();
+                }
+                // If allowViewscreen is false, do nothing on right-click.
+            } else { // This is now explicitly a left-click (or middle-click)
                 this.flip();
-                // We can still call the onFlip callback if other logic depends on it
                 if (this.onFlip) this.onFlip();
             }
         });
@@ -280,7 +288,8 @@ class Card {
                 fontSize: 64,
                 interactive: true, // It's interactive to block clicks to the overlay
                 allowViewscreen: false, // Explicitly disable opening another viewscreen
-                isFlipped: this.isFlipped // Pass the flipped state to the large card
+                isFlipped: this.isFlipped, // Pass the flipped state to the large card
+                cardInfoSource: this.cardInfo.type // Pass the source ('player' or 'grid')
             });
             // Prevent card from closing modal on pointer down
             card.getContainer().on('pointerdown', (pointer) => {
