@@ -16,7 +16,9 @@ class Card {
         this.onUnhover = options.onUnhover;
         this.onFlip = options.onFlip;
         this.allowViewscreen = options.allowViewscreen !== false; // Default to true
+        this.isFlipping = false; // To prevent animation conflicts
         this.isFlipped = options.isFlipped || false;
+        this.isHovered = false; // Track hover state
         
         // Hover effect parameters
         this.hoverMoveDistance = options.hoverMoveDistance || 0; // How much to move on hover (0 = no move)
@@ -104,6 +106,12 @@ class Card {
     }
     
     onHoverStart() {
+        this.isHovered = true;
+        // Don't start a hover animation if the card is in the middle of flipping
+        if (this.isFlipping) {
+            return;
+        }
+
         // Stop any existing tweens on this card to prevent conflicts
         this.scene.tweens.killTweensOf(this.container);
 
@@ -136,6 +144,12 @@ class Card {
     }
     
     onHoverEnd() {
+        this.isHovered = false;
+        // Don't start an un-hover animation if the card is in the middle of flipping
+        if (this.isFlipping) {
+            return;
+        }
+
         // Stop any existing tweens on this card to prevent conflicts
         this.scene.tweens.killTweensOf(this.container);
 
@@ -162,14 +176,55 @@ class Card {
     }
     
     /**
-     * Toggles the visual state of the card between face-up and face-down.
+     * Toggles the visual state of the card between face-up and face-down with an animation.
      */
     flip() {
-        this.isFlipped = !this.isFlipped;
+        // Prevent starting a new flip animation if one is already running
+        if (this.isFlipping) {
+            return;
+        }
+        this.isFlipping = true;
+        this.container.disableInteractive(); // Prevent clicks during animation
 
-        // Toggle visibility of the front and back of the card
-        this.valueText.setVisible(!this.isFlipped);
-        this.flippedText.setVisible(this.isFlipped);
+        // First, stop any hover-related tweens to avoid conflicts
+        this.scene.tweens.killTweensOf(this.container);
+
+        // First half of the flip: scale X down to 0
+        this.scene.tweens.add({
+            targets: this.container,
+            scaleX: 0,
+            duration: 150,
+            ease: 'Power2.easeIn',
+            onComplete: () => {
+                // At the halfway point, update the card's state and visuals
+                this.isFlipped = !this.isFlipped;
+                this.valueText.setVisible(!this.isFlipped);
+                this.flippedText.setVisible(this.isFlipped);
+
+                // Determine the final scale *after* the first half of the animation.
+                // This ensures we respect any hover state changes that happened during the animation.
+                const finalScale = this.isHovered ? this.hoverZoom : 1;
+
+                const finalTweenConfig = {
+                    targets: this.container,
+                    scaleX: finalScale,
+                    scaleY: finalScale,
+                    duration: 150,
+                    ease: 'Power2.easeOut',
+                    onComplete: () => {
+                        this.isFlipping = false; // Allow flipping again
+                        this.container.setInteractive(); // Re-enable clicks
+                    }
+                };
+
+                // Only animate the Y position if the card is supposed to move on hover.
+                if (this.hoverMoveDistance !== 0) {
+                    finalTweenConfig.y = this.isHovered ? this.y - this.hoverMoveDistance : this.y;
+                }
+
+                this.scene.tweens.add(finalTweenConfig);
+            }
+        });
     }
     
     
