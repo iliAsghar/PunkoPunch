@@ -4,14 +4,23 @@ class GameScene extends Phaser.Scene {
         this.baseWidth = 1280;
         this.baseHeight = 720;
     }
+
+    /**
+     * The init method receives data passed from other scenes.
+     * @param {object} data - The data object passed from MenuScene.
+     */
+    init(data) {
+        // Store the game settings received from the menu
+        this.gameSettings = data;
+    }
     
     create() {
         // Create a main container to act as our "virtual canvas"
         this.gameContainer = this.add.container(0, 0);
 
         // Initialize game manager (handles hand and piles)
-        // Pass the main container to the manager
-        const gameManager = new GameManager(this, this.gameContainer);
+        // Pass the main container and game settings to the manager
+        const gameManager = new GameManager(this, this.gameContainer, this.gameSettings);
         gameManager.initialize();
         
         // Listen for the resize event from the Scale Manager

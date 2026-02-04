@@ -3,15 +3,15 @@
  * Handles creation, layout, and state of the grid cards.
  */
 class GridManager {
-    constructor(scene, parentContainer) {
+    constructor(scene, parentContainer, options = {}) {
         this.scene = scene;
         this.gridCards = []; // Data model for the grid cards: { id, isFlipped }
         this.cardsContainer = this.scene.add.container(0, 0);
         parentContainer.add(this.cardsContainer);
 
         // Grid layout constants
-        this.rows = 3;
-        this.cols = 5;
+        this.rows = options.rows || 3; // Default to 3 rows
+        this.cols = options.cols || 5; // Default to 5 columns
         this.cardSize = 110; // Square cards
         this.spacing = 20;
     }

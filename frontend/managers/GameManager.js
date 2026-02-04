@@ -3,9 +3,10 @@
  * Manages interactions between hand and piles
  */
 class GameManager {
-    constructor(scene, mainContainer) {
+    constructor(scene, mainContainer, gameSettings = {}) {
         this.scene = scene;
         this.mainContainer = mainContainer;
+        this.maxPlayersPerTeam = gameSettings.maxPlayersPerTeam || 2; // Default to 2 if not set
         this.handManager = null;
         this.pileManager = null;
         this.gridManager = null;
@@ -22,7 +23,10 @@ class GameManager {
         // Create managers
         this.handManager = new HandManager(this.scene, this.mainContainer);
         this.pileManager = new PileManager(this.scene, this.mainContainer);
-        this.gridManager = new GridManager(this.scene, this.mainContainer);
+        this.gridManager = new GridManager(this.scene, this.mainContainer, {
+            rows: this.maxPlayersPerTeam + 1,
+            cols: 7
+        });
 
         // Create local player
         const player = new Player(this.localPlayerId, 'Player 1', 20, 20, 6, 6);

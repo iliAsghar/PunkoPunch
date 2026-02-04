@@ -19,7 +19,11 @@ class MenuScene extends Phaser.Scene {
                 this.setScale(1);
             })
             .on('pointerdown', () => {
-                this.scene.start('GameScene');
+                // Pass game settings when starting the game scene.
+                // This is where a value from an input field would be read.
+                this.scene.start('GameScene', { 
+                    maxPlayersPerTeam: 2 // Using a default of 2 for now
+                });
             });
         
         this.add.text(width / 2, height / 2, 'Start', {
