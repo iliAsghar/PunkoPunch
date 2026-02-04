@@ -12,8 +12,8 @@ class GridManager {
         // Grid layout constants
         this.rows = options.rows || 3; // Default to 3 rows
         this.cols = options.cols || 5; // Default to 5 columns
-        this.cardSize = 110; // Square cards
-        this.spacing = 20;
+        this.cardSize = 70; // Square cards
+        this.spacing = 10;
     }
 
     /**
@@ -77,7 +77,7 @@ class GridManager {
             const cardObj = new Card(this.scene, x, y, cardData.id, {
                 width: this.cardSize,
                 height: this.cardSize, // Square card
-                fontSize: 48,
+                fontSize: 40,
                 interactive: true,
                 isFlipped: cardData.isFlipped, 
                 hoverMoveDistance: 0, // Only scale, don't move
