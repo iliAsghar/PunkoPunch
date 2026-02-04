@@ -6,6 +6,7 @@ class HandManager {
     constructor(scene, parentContainer) {
         this.scene = scene;
         this.drawnCards = [];
+        this.cardObjects = []; // To hold the Card component instances
         this.cardsContainer = this.scene.add.container(0, 0);
         parentContainer.add(this.cardsContainer);
         
@@ -21,7 +22,7 @@ class HandManager {
      * Add a card to the hand
      */
     addCard(cardId) {
-        this.drawnCards.push({ id: cardId, isFlipped: false });
+        this.drawnCards.push({ id: cardId, isFlipped: false, selected: false });
         this.display();
     }
     
@@ -34,11 +35,25 @@ class HandManager {
     }
 
     /**
-     * Toggles the flipped state of a card in hand
+     * Toggles the selected state of a card in hand and redisplays the hand.
      */
-    toggleFlip(index) {
-        if (this.drawnCards[index]) {
-            this.drawnCards[index].isFlipped = !this.drawnCards[index].isFlipped; // Just update the data model
+    toggleSelected(index) {
+        const wasSelected = this.drawnCards[index].selected;
+
+        // First, unselect all other cards
+        this.drawnCards.forEach((cardData, i) => {
+            if (i !== index && cardData.selected) {
+                cardData.selected = false;
+                this.cardObjects[i]?.setSelected(false);
+            }
+        });
+
+        // Then, toggle the clicked card's state
+        const targetCardData = this.drawnCards[index];
+        const targetCardObject = this.cardObjects[index];
+        if (targetCardData && targetCardObject) {
+            targetCardData.selected = !wasSelected;
+            targetCardObject.setSelected(targetCardData.selected);
         }
     }
     
@@ -54,6 +69,7 @@ class HandManager {
      */
     clear() {
         this.drawnCards = [];
+        this.cardObjects = [];
         this.cardsContainer.each((child) => {
             child.destroy();
         });
@@ -66,9 +82,8 @@ class HandManager {
     display() {
         // Clear the container but keep the card data in drawnCards
         this.cardsContainer.removeAll(true); // This destroys the card game objects
-        
-        // Re-create the card game objects from the data
-        const cardObjects = [];
+        this.cardObjects = []; // Clear the references
+        const cardContainers = []; // To hold the Phaser containers for adding to the scene
 
         const width = this.scene.game.config.width; // Use base width
         const handY = this.scene.game.config.height - 50; // Use base height
@@ -111,14 +126,16 @@ class HandManager {
                 hoverMoveDistance: 30,  // Move up on hover
                 hoverZoom: 1.1,         // Zoom on hover
                 isFlipped: card.isFlipped,
-                onFlip: () => {
-                    this.toggleFlip(index);
+                isSelected: card.selected, // Pass the selected state to the card
+                onClick: () => {
+                    this.toggleSelected(index);
                 }
             });
-            cardObjects.push(cardObj.getContainer());
+            this.cardObjects.push(cardObj); // Store the Card instance
+            cardContainers.push(cardObj.getContainer()); // Store the container for rendering
         });
 
-        this.cardsContainer.add(cardObjects);
+        this.cardsContainer.add(cardContainers);
     }
     
     /**

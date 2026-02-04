@@ -1,4 +1,94 @@
 class Card {
+    /**
+     * Handles the "push down" effect when the mouse is pressed on the card.
+     */
+    onPointerDown() {
+        if (this.isFlipping) return;
+
+        this.scene.tweens.killTweensOf(this.container);
+
+        const pressDownScale = this.hoverZoom * 0.95; // Slightly smaller than hover zoom
+
+        this.scene.tweens.add({
+            targets: this.container,
+            scaleX: pressDownScale,
+            scaleY: pressDownScale,
+            duration: 50,
+            ease: 'Power1'
+        });
+    }
+
+    /**
+     * Handles releasing the "push down" effect when the mouse is released.
+     */
+    onPointerUp() {
+        if (this.isFlipping) return;
+
+        // When the pointer is released, we want to return to the hover state,
+        // as the cursor will still be over the card.
+        // The onHoverStart method handles this perfectly.
+        if (this.isHovered) {
+            this.onHoverStart();
+        } else {
+            // If for some reason the pointer was released when not hovered
+            // (e.g., dragged off and then back on very quickly),
+            // just go back to the default state.
+            this.onHoverEnd();
+        }
+    }
+
+    /**
+     * Toggles the visual state of the card between face-up and face-down with an animation.
+     */
+    flip() {
+        // Prevent starting a new flip animation if one is already running
+        if (this.isFlipping) {
+            return;
+        }
+        this.isFlipping = true;
+        this.container.disableInteractive(); // Prevent clicks during animation
+
+        // First, stop any hover-related tweens to avoid conflicts
+        this.scene.tweens.killTweensOf(this.container);
+
+        // First half of the flip: scale X down to 0
+        this.scene.tweens.add({
+            targets: this.container,
+            scaleX: 0,
+            duration: 150,
+            ease: 'Power2.easeIn',
+            onComplete: () => {
+                // At the halfway point, update the card's state and visuals
+                this.isFlipped = !this.isFlipped;
+                this.valueText.setVisible(!this.isFlipped);
+                this.flippedText.setVisible(this.isFlipped);
+
+                // Determine the final scale *after* the first half of the animation.
+                // This ensures we respect any hover state changes that happened during the animation.
+                const finalScale = this.isHovered ? this.hoverZoom : 1;
+
+                const finalTweenConfig = {
+                    targets: this.container,
+                    scaleX: finalScale,
+                    scaleY: finalScale,
+                    duration: 150,
+                    ease: 'Power2.easeOut',
+                    onComplete: () => {
+                        this.isFlipping = false; // Allow flipping again
+                        this.container.setInteractive(); // Re-enable clicks
+                    }
+                };
+
+                // Only animate the Y position if the card is supposed to move on hover.
+                if (this.hoverMoveDistance !== 0) {
+                    finalTweenConfig.y = this.isHovered ? this.y - this.hoverMoveDistance : this.y;
+                }
+
+                this.scene.tweens.add(finalTweenConfig);
+            }
+        });
+    }
+
     constructor(scene, x, y, cardId, options = {}) {
         this.scene = scene;
         this.x = x;
@@ -22,12 +112,14 @@ class Card {
         this.onHover = options.onHover;
         this.onUnhover = options.onUnhover;
         this.onFlip = options.onFlip;
+        this.onClick = options.onClick; // New callback for general clicks
         this.centerText = options.centerText || false; // New option to center the text
         this.allowViewscreen = options.allowViewscreen !== false; // Default to true
         this.isFlipping = false; // To prevent animation conflicts
         this.isFlipped = options.isFlipped || false;
         this.isHovered = false; // Track hover state
-        
+        this.isSelected = options.isSelected || false; // New property for selection state
+
         // Hover effect parameters
         this.hoverMoveDistance = options.hoverMoveDistance || 0; // How much to move on hover (0 = no move)
         this.hoverZoom = options.hoverZoom || 1; // Scale factor on hover (1 = no zoom)
@@ -44,7 +136,11 @@ class Card {
             this.width, this.height, 
             0xffffff
         );
-        this.cardRect.setStrokeStyle(2, 0x000000);
+        if (this.isSelected) {
+            this.cardRect.setStrokeStyle(4, 0xffa500, 1); // Orange glow for selected
+        } else {
+            this.cardRect.setStrokeStyle(2, 0x000000); // Default black border
+        }
         
         // Card value text
         this.valueText = this.scene.add.text(
@@ -109,6 +205,12 @@ class Card {
             this.onHoverEnd();
         });
         
+        this.container.on('pointerup', () => {
+            this.onPointerUp();
+        });
+        this.container.on('pointerupoutside', () => {
+            this.onPointerUp();
+        });
         this.container.on('pointerdown', (pointer) => {
             if (pointer.rightButtonDown()) {
                 if (this.allowViewscreen) {
@@ -116,8 +218,15 @@ class Card {
                 }
                 // If allowViewscreen is false, do nothing on right-click.
             } else { // This is now explicitly a left-click (or middle-click)
-                this.flip();
-                if (this.onFlip) this.onFlip();
+                this.onPointerDown(); // Handle the "push down" effect
+
+                if (this.onClick) {
+                    this.onClick();
+                } else {
+                    // Default behavior if no onClick is provided is to flip
+                    this.flip();
+                    if (this.onFlip) this.onFlip();
+                }
             }
         });
     }
@@ -185,7 +294,9 @@ class Card {
         this.scene.tweens.add(tweenConfig);
         
         // Remove glow effect
-        this.cardRect.setStrokeStyle(2, 0x000000);
+        if (!this.isSelected) {
+            this.cardRect.setStrokeStyle(2, 0x000000);
+        }
         
         if (this.onUnhover) {
             this.onUnhover();
@@ -193,57 +304,29 @@ class Card {
     }
     
     /**
-     * Toggles the visual state of the card between face-up and face-down with an animation.
+     * Updates the visual state of the card based on its selection status.
+     * @param {boolean} isSelected - The new selection state.
      */
-    flip() {
-        // Prevent starting a new flip animation if one is already running
-        if (this.isFlipping) {
-            return;
-        }
-        this.isFlipping = true;
-        this.container.disableInteractive(); // Prevent clicks during animation
+    setSelected(isSelected) {
+        this.isSelected = isSelected;
 
-        // First, stop any hover-related tweens to avoid conflicts
+        // Stop any existing tweens on this card to prevent conflicts,
+        // especially if the selection changes the card's appearance or position.
         this.scene.tweens.killTweensOf(this.container);
 
-        // First half of the flip: scale X down to 0
-        this.scene.tweens.add({
-            targets: this.container,
-            scaleX: 0,
-            duration: 150,
-            ease: 'Power2.easeIn',
-            onComplete: () => {
-                // At the halfway point, update the card's state and visuals
-                this.isFlipped = !this.isFlipped;
-                this.valueText.setVisible(!this.isFlipped);
-                this.flippedText.setVisible(this.isFlipped);
-
-                // Determine the final scale *after* the first half of the animation.
-                // This ensures we respect any hover state changes that happened during the animation.
-                const finalScale = this.isHovered ? this.hoverZoom : 1;
-
-                const finalTweenConfig = {
-                    targets: this.container,
-                    scaleX: finalScale,
-                    scaleY: finalScale,
-                    duration: 150,
-                    ease: 'Power2.easeOut',
-                    onComplete: () => {
-                        this.isFlipping = false; // Allow flipping again
-                        this.container.setInteractive(); // Re-enable clicks
-                    }
-                };
-
-                // Only animate the Y position if the card is supposed to move on hover.
-                if (this.hoverMoveDistance !== 0) {
-                    finalTweenConfig.y = this.isHovered ? this.y - this.hoverMoveDistance : this.y;
-                }
-
-                this.scene.tweens.add(finalTweenConfig);
+        if (this.isSelected) {
+            this.cardRect.setStrokeStyle(4, 0xffa500, 1); // Orange glow for selected
+        } else {
+            // If the card is being deselected but is still hovered, we should
+            // re-apply the hover state to avoid it snapping back to the unhovered state.
+            if (this.isHovered) {
+                this.cardRect.setStrokeStyle(2, 0x000000); // Set default border before starting hover
+                this.onHoverStart();
+            } else {
+                this.cardRect.setStrokeStyle(2, 0x000000); // Default black border
             }
-        });
+        }
     }
-    
     
     /**
      * Show the card in a full-screen view
