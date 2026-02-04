@@ -2,6 +2,9 @@ const config = {
     type: Phaser.AUTO,
     backgroundColor: '#ffffff',
     parent: 'game-container',
+    dom: {
+        createContainer: true // This is crucial for using HTML elements like the input field
+    },
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,

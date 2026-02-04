@@ -6,30 +6,47 @@ class MenuScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
-        // Start button
-        const startBtn = this.add.rectangle(width / 2, height / 2, 200, 60, 0x000000)
-            .setInteractive()
-            .on('pointerover', function() {
-                this.setFillStyle(0x333333);
-                this.setScale(1.05);
-            })
-            .on('pointerout', function() {
-                this.setFillStyle(0x000000);
-                this.setScale(1);
-            })
-            .on('pointerdown', () => {
-                // Pass game settings when starting the game scene.
-                // This is where a value from an input field would be read.
-                this.scene.start('GameScene', { 
-                    maxPlayersPerTeam: 2 // Using a default of 2 for now
-                });
-            });
-        
-        this.add.text(width / 2, height / 2, 'Start', {
-            font: '32px Arial',
-            fill: '#ffffff',
-            fontStyle: 'bold'
+
+        // Game Title
+        this.add.text(width / 2, height / 2 - 150, 'PunkoPunch', {
+            font: 'bold 64px Arial',
+            fill: '#000000'
         }).setOrigin(0.5);
+
+        // --- Max Players Input ---
+        this.add.text(width / 2, height / 2 - 50, 'Max Players per Team:', {
+            font: '24px Arial',
+            fill: '#333333'
+        }).setOrigin(0.5);
+
+        // We use an HTML input element for text entry
+        const inputElement = document.createElement('input');
+        inputElement.type = 'number';
+        inputElement.value = '2'; // Default value
+        inputElement.min = '1';
+        inputElement.max = '5';
+        inputElement.style.width = '80px';
+        inputElement.style.fontSize = '20px';
+        inputElement.style.textAlign = 'center';
+
+        this.add.dom(width / 2, height / 2, inputElement);
+
+        // --- Start Game Button ---
+        const startButton = this.add.text(width / 2, height / 2 + 80, 'Start Game', {
+            font: 'bold 32px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#000000',
+            padding: { x: 20, y: 10 }
+        })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+
+        startButton.on('pointerdown', () => {
+            const maxPlayers = parseInt(inputElement.value, 10) || 2; // Fallback to 2 if input is invalid
+            this.scene.start('GameScene', { maxPlayersPerTeam: maxPlayers });
+        });
+
+        startButton.on('pointerover', () => startButton.setBackgroundColor('#333333'));
+        startButton.on('pointerout', () => startButton.setBackgroundColor('#000000'));
     }
 }
