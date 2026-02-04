@@ -24,7 +24,7 @@ class GameManager {
         this.handManager = new HandManager(this.scene, this.mainContainer);
         this.pileManager = new PileManager(this.scene, this.mainContainer);
         this.gridManager = new GridManager(this.scene, this.mainContainer, {
-            rows: this.maxPlayersPerTeam + 1,
+            rows: Math.min(this.maxPlayersPerTeam, 4) + 1,
             cols: 7
         });
 
