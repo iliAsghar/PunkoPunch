@@ -278,6 +278,7 @@ class GameManager {
         // Hide game elements
         this.handManager.getContainer().setVisible(false);
         this.pileManager.uiContainer.setVisible(false);
+        this.gridManager.cardsContainer.setVisible(false);
 
         // Display "YOU'RE DEAD" message
         const { width, height } = this.scene.game.config;
@@ -301,7 +302,7 @@ class GameManager {
         // Show game elements
         this.handManager.getContainer().setVisible(true);
         this.pileManager.uiContainer.setVisible(true);
-
+        this.gridManager.cardsContainer.setVisible(true);
         // Remove "YOU'RE DEAD" message
         if (this.deathText) {
             this.deathText.destroy();
