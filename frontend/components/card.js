@@ -50,19 +50,20 @@ class Card {
         // Add elements to container
         this.container.add([this.cardRect, this.valueText]);
 
-        if (this.isFlipped) {
-            this.valueText.setVisible(false); // Hide the original value
+        // Create the 'flipped' text but keep it hidden initially
+        this.flippedText = this.scene.add.text(
+            0, 0, 'XX', {
+                font: `bold ${this.height * 0.3}px Arial`, // Make it big
+                fill: '#ff0000',
+                align: 'center'
+            }
+        ).setOrigin(0.5);
+        this.container.add(this.flippedText);
 
-            const flippedText = this.scene.add.text(
-                0, 0, 'XX', {
-                    font: `bold ${this.height * 0.3}px Arial`, // Make it big
-                    fill: '#ff0000',
-                    align: 'center'
-                }
-            ).setOrigin(0.5);
+        // Set initial visibility based on the isFlipped state
+        this.valueText.setVisible(!this.isFlipped);
+        this.flippedText.setVisible(this.isFlipped);
 
-            this.container.add(flippedText);
-        }
         this.container.setRotation(this.rotation);
         
         // Setup interactivity
@@ -93,13 +94,19 @@ class Card {
         this.container.on('pointerdown', (pointer) => {
             if (pointer.rightButtonDown() && this.allowViewscreen) {
                 this.showViewscreen();
-            } else if (this.onFlip) {
-                this.onFlip();
+            } else {
+                // Directly call the internal flip method on left-click
+                this.flip();
+                // We can still call the onFlip callback if other logic depends on it
+                if (this.onFlip) this.onFlip();
             }
         });
     }
     
     onHoverStart() {
+        // Stop any existing tweens on this card to prevent conflicts
+        this.scene.tweens.killTweensOf(this.container);
+
         const tweenConfig = {
             targets: [this.container],
             duration: this.hoverInDuration,
@@ -129,6 +136,9 @@ class Card {
     }
     
     onHoverEnd() {
+        // Stop any existing tweens on this card to prevent conflicts
+        this.scene.tweens.killTweensOf(this.container);
+
         const tweenConfig = {
             targets: [this.container],
             duration: this.hoverOutDuration,
@@ -149,6 +159,17 @@ class Card {
         if (this.onUnhover) {
             this.onUnhover();
         }
+    }
+    
+    /**
+     * Toggles the visual state of the card between face-up and face-down.
+     */
+    flip() {
+        this.isFlipped = !this.isFlipped;
+
+        // Toggle visibility of the front and back of the card
+        this.valueText.setVisible(!this.isFlipped);
+        this.flippedText.setVisible(this.isFlipped);
     }
     
     

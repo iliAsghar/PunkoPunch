@@ -364,14 +364,28 @@ class PileManager {
                 const mask = maskShape.createGeometryMask();
                 cardsContainer.setMask(mask);
 
-                let scrollY = 0;
+                let scrollTween = null;
+                let targetY = gridY;
                 const maxScroll = contentHeight - gridHeight;
 
                 wheelListener = (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
                     if (boxZone.getBounds().contains(pointer.x, pointer.y)) {
-                        scrollY -= deltaY * 0.5;
-                        scrollY = Phaser.Math.Clamp(scrollY, -maxScroll, 0);
-                        cardsContainer.y = gridY + scrollY;
+                        // Adjust target position based on wheel delta
+                        targetY -= deltaY * 20; // Multiplier for scroll speed
+                        targetY = Phaser.Math.Clamp(targetY, gridY - maxScroll, gridY);
+
+                        // Use a tween for smooth scrolling
+                        if (scrollTween) {
+                            scrollTween.updateTo('y', targetY, true);
+                        } else {
+                            scrollTween = this.scene.tweens.add({
+                                targets: cardsContainer,
+                                y: targetY,
+                                duration: 400,
+                                ease: 'Power2.easeOut',
+                                onComplete: () => { scrollTween = null; }
+                            });
+                        }
                     }
                 };
                 this.scene.input.on('wheel', wheelListener);

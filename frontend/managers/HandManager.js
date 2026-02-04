@@ -38,8 +38,7 @@ class HandManager {
      */
     toggleFlip(index) {
         if (this.drawnCards[index]) {
-            this.drawnCards[index].isFlipped = !this.drawnCards[index].isFlipped;
-            this.display(); // Re-render the hand to show the change
+            this.drawnCards[index].isFlipped = !this.drawnCards[index].isFlipped; // Just update the data model
         }
     }
     

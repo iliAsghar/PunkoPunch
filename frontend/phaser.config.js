@@ -12,7 +12,9 @@ const config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 0 },
-            debug: false
+            debug: false,
+            // Use integer-based physics calculations for more predictable and potentially faster results
+            fps: 60
         }
     },
     audio: {
@@ -20,5 +22,11 @@ const config = {
     },
     scene: [MenuScene, GameScene]
 };
+Object.assign(config, {
+    render: {
+        pixelArt: true,
+        antialias: false
+    }
+});
 
 window.gameInstance = new Phaser.Game(config);
