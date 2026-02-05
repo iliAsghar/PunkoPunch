@@ -205,31 +205,6 @@ class GameManager {
     }
 
     /**
-     * Redraws all major UI components. Called on window resize.
-     */
-    redrawUI() {
-        // This is no longer needed as the main container handles all scaling.
-        // The resize logic is now centralized in GameScene.
-    }
-    
-    /**
-     * Discard the last card from hand to discard pile
-     */
-    discardCard() {
-        // Prevent discarding if a bulk operation is in progress.
-        if (this.isBulkOperationInProgress) return;
-
-        // Discard the last card in hand (right-most card)
-        if (this.handManager.drawnCards.length > 0) {
-            const lastCardIndex = this.handManager.drawnCards.length - 1;
-            const cardData = this.handManager.drawnCards[lastCardIndex];
-
-            // Use the PlayManager to handle the animation
-            this.playManager.discardCard(cardData.instanceId);
-        }
-    }
-    
-    /**
      * Get hand manager
      */
     getHandManager() {

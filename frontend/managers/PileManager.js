@@ -172,26 +172,10 @@ class PileManager {
         this.discardPileContainer.add([discardRect, this.discardCountText]);
         this.uiContainer.add(this.discardPileContainer);
 
-        // Discard button above discard pile
-        const discardLastBtnX = discardPileX;
-        const discardLastBtnY = discardPileY - this.pileHeight / 2 - 40;
-        const discardLastBtn = this.scene.add.rectangle(discardLastBtnX, discardLastBtnY, 80, 35, 0x000000)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerover', function() { this.setFillStyle(0x333333); })
-            .on('pointerout', function() { this.setFillStyle(0x000000); })
-            .on('pointerdown', () => this.scene.gameManager?.discardCard());
-        
-        const discardLastBtnText = this.scene.add.text(discardLastBtnX, discardLastBtnY, 'Discard Last', {
-            font: 'bold 12px Arial',
-            fill: '#ffffff'
-        }).setOrigin(0.5);
-        
         // Add all UI elements to the container
         this.uiContainer.add([
             drawBtn,
-            drawBtnText,
-            discardLastBtn,
-            discardLastBtnText
+            drawBtnText
         ]);
     }
     
