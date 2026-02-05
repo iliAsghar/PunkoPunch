@@ -1,11 +1,12 @@
 /**
  * card-manifest.js
  * 
- * This file acts as a manifest, listing all the individual player card files
- * that should be dynamically loaded into the game.
+ * This file acts as a manifest, listing all individual card files.
+ * The cardLoader.js script will use this list to dynamically load all 
+ * available cards into the game's memory.
  * 
- * When you create a new card file (e.g., 'ph11.js'), just add its filename
- * to this array. The cardLoader.js script will handle the rest.
+ * When you create a new card (e.g., 'ph11.js'), add its filename to this
+ * array to make it available in the game.
  */
 const CARD_MANIFEST = [
     'ph1.js', 'ph2.js', 'ph3.js', 'ph4.js', 'ph5.js',
