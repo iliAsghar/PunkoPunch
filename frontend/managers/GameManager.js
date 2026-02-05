@@ -77,17 +77,7 @@ class GameManager {
             { id: 'ph7' },
             { id: 'ph8' },
             { id: 'ph9' },
-            { id: 'ph10' },
-            { id: 'ph11' },
-            { id: 'ph12' },
-            { id: 'ph13' },
-            { id: 'ph14' },
-            { id: 'ph15' },
-            { id: 'ph16' },
-            { id: 'ph17' },
-            { id: 'ph18' },
-            { id: 'ph19' },
-            { id: 'ph20' }
+            { id: 'ph10' }
         ];
         
         this.pileManager.initialize(initialDeck);

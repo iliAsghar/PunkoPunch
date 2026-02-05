@@ -13,32 +13,9 @@
     
     <!-- Utilities & Data -->
     <script src="frontend/utils/gameUtils.js"></script>
-    <script src="frontend/assets/cardDictionary.js"></script>
-    <script src="frontend/assets/gridCardDictionary.js"></script>
-
-    <!-- Data Models -->
-
-    <script src="frontend/models/Player.js"></script>
-
-    <!-- UI Components -->
-    <script src="frontend/ui/PlayerStatsUI.js"></script>
-    <script src="frontend/components/BaseCard.js"></script>
-    <script src="frontend/components/HandCard.js"></script>
-    <script src="frontend/components/GridCard.js"></script>
-
-    <!-- Managers (dependencies first) -->
-    <script src="frontend/managers/GridManager.js"></script>
-    <script src="frontend/managers/HandManager.js"></script>
-    <script src="frontend/managers/PileManager.js"></script>
-    <script src="frontend/managers/PlayManager.js"></script>
-    <script src="frontend/managers/GameManager.js"></script>
     
-    <!-- Scenes -->
-    <script src="frontend/scenes/MenuScene.js"></script>
-    <script src="frontend/scenes/GameScene.js"></script>
-    
-    <!-- Main Game Setup -->
-    <script src="frontend/phaser.config.js"></script>
-    <script src="frontend/main.js"></script>
+    <!-- Dynamic Script Loader -->
+    <!-- This script will load the card manifest and then all other necessary game scripts in the correct order. -->
+    <script src="frontend/utils/cardLoader.js"></script>
 </body>
 </html>

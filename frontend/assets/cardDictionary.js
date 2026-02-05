@@ -1,27 +1,31 @@
-// Card Dictionary - Define all card properties here
-const CARD_DICTIONARY = {
-    ph1: { value: 1 },
-    ph2: { value: 2 },
-    ph3: { value: 3 },
-    ph4: { value: 4 },
-    ph5: { value: 5 },
-    ph6: { value: 6 },
-    ph7: { value: 7 },
-    ph8: { value: 8 },
-    ph9: { value: 9 },
-    ph10: { value: 10 },
-    ph11: { value: 11 },
-    ph12: { value: 12 },
-    ph13: { value: 13 },
-    ph14: { value: 14 },
-    ph15: { value: 15 },
-    ph16: { value: 16 },
-    ph17: { value: 17 },
-    ph18: { value: 18 },
-    ph19: { value: 19 },
-    ph20: { value: 20 }
+/**
+ * cardDictionary.js
+ * 
+ * This file acts as a central registry for all player card data.
+ * It collects the individual card objects, which are loaded via <script> tags
+ * in index.html, and organizes them into a single, easily accessible object.
+ */
+
+const CARD_DATA = {
+    ph1, ph2, ph3, ph4, ph5,
+    ph6, ph7, ph8, ph9, ph10
 };
 
+/**
+ * Retrieves the complete data object for a given card ID.
+ * @param {string} cardId - The ID of the card (e.g., 'ph1').
+ * @returns {object} The card's data object, or a default unknown card object.
+ */
 function getCardInfo(cardId) {
-    return CARD_DICTIONARY[cardId] || { value: 0 };
+    return CARD_DATA[cardId] || {
+        id: cardId,
+        name: 'Unknown Card',
+        value: '??',
+        type: 'unknown',
+        description: 'This card data could not be found.',
+        cost: {},
+        play: () => {
+            console.error(`Play function not found for card ID: ${cardId}`);
+        }
+    };
 }
