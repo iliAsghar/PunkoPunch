@@ -13,6 +13,7 @@ class PlayManager {
         this.pileManager = pileManager;
         this.playQueue = [];
         this.isPlaying = false;
+        this.discardQueue = [];
     }
 
     /**
@@ -25,20 +26,38 @@ class PlayManager {
     }
 
     /**
+     * Animates a card from the hand to the discard pile without playing it.
+     * @param {number} instanceId The unique instance ID of the card to discard.
+     */
+    discardCard(instanceId) {
+        this.discardQueue.push(instanceId);
+        this.processPlayQueue(); // The same queue processor can handle both
+    }
+
+    /**
      * Processes the next card in the play queue if not already playing.
      */
     processPlayQueue() {
         if (this.isPlaying || this.playQueue.length === 0) {
-            return;
+            // If the play queue is empty, check the discard queue.
+            if (this.isPlaying || this.discardQueue.length === 0) {
+                return;
+            }
         }
 
         this.isPlaying = true;
-        const instanceIdToPlay = this.playQueue.shift();
 
-        // --- Find the card in the hand at the moment of playing ---
-        // This is the crucial fix: we find the card's current index and object
-        // right before we animate it, avoiding stale data.
-        const cardIndex = this.handManager.drawnCards.findIndex(c => c.instanceId === instanceIdToPlay);
+        // Prioritize playing cards over discarding them.
+        const isDiscarding = this.playQueue.length === 0;
+        const instanceIdToProcess = isDiscarding ? this.discardQueue.shift() : this.playQueue.shift();
+
+        // Explicitly check for undefined, as instanceId can be 0 (a falsy value).
+        if (instanceIdToProcess === undefined) {
+            this.isPlaying = false;
+            return;
+        }
+
+        const cardIndex = this.handManager.drawnCards.findIndex(c => c.instanceId === instanceIdToProcess);
         if (cardIndex === -1) {
             this.isPlaying = false;
             this.processPlayQueue(); // Try the next one
@@ -47,7 +66,9 @@ class PlayManager {
         const cardData = this.handManager.drawnCards[cardIndex];
         const cardObject = this.handManager.cardObjects[cardIndex];
 
-        console.log(`card ${cardData.id} was played`);
+        if (!isDiscarding) {
+            console.log(`card ${cardData.id} was played`);
+        }
 
         // 1. Reparent the card to the main game container to escape the HandManager's render order.
         const cardContainer = cardObject.getContainer();
@@ -67,47 +88,65 @@ class PlayManager {
         const discardPilePosition = this.pileManager.getDiscardPilePosition();
 
         // Use a timeline to sequence the animations: move to center, pause, then move to discard.
-        const timeline = this.scene.tweens.createTimeline();
+        let timeline;
 
-        // Part 1: Animate the card to the center of the screen.
-        timeline.add({
-            targets: cardContainer,
-            x: centerX,
-            y: centerY,
-            rotation: 0, // Straighten the card
-            scale: 1.1,  // Slightly enlarge it for focus
-            duration: 300,
-            ease: 'Power2'
-        });
+        if (isDiscarding) {
+            // Simple animation: directly to the discard pile.
+            timeline = this.scene.tweens.add({
+                targets: cardContainer,
+                x: discardPilePosition.x,
+                y: discardPilePosition.y,
+                rotation: Phaser.Math.DegToRad(45),
+                scale: 0,
+                duration: 400,
+                ease: 'Cubic.easeIn'
+            });
+        } else {
+            // Full "play card" animation with timeline.
+            timeline = this.scene.tweens.createTimeline();
 
-        // Part 2: Animate the card to the discard pile while shrinking and rotating.
-        timeline.add({
-            targets: cardContainer,
-            x: discardPilePosition.x,
-            y: discardPilePosition.y,
-            rotation: Phaser.Math.DegToRad(45),
-            scale: 0, // Shrink to nothing
-            duration: 400,
-            ease: 'Cubic.easeIn',
-            offset: '+=250' // This creates a 250ms pause after the first tween.
-        });
+            // Part 1: Animate the card to the center of the screen.
+            timeline.add({
+                targets: cardContainer,
+                x: centerX,
+                y: centerY,
+                rotation: 0, // Straighten the card
+                scale: 1.1,  // Slightly enlarge it for focus
+                duration: 300,
+                ease: 'Power2'
+            });
+
+            // Part 2: Animate the card to the discard pile while shrinking and rotating.
+            timeline.add({
+                targets: cardContainer,
+                x: discardPilePosition.x,
+                y: discardPilePosition.y,
+                rotation: Phaser.Math.DegToRad(45),
+                scale: 0, // Shrink to nothing
+                duration: 400,
+                ease: 'Cubic.easeIn',
+                offset: '+=250' // This creates a 250ms pause after the first tween.
+            });
+
+            timeline.play();
+        }
 
         timeline.on('complete', () => {
-            // 1. Destroy the card's container after the animation is done.
+            // The order here is critical to prevent race conditions, especially with the last card.
+            // First, perform all data and model updates.
             cardContainer.destroy();
-            // 2. Animate the hand closing the gap.
             this.handManager.animateHandAfterPlay(cardIndex);
-            // 3. Add card to discard pile
             this.pileManager.discardCard(cardData);
-            // 4. Re-enable hand interactions.
+
+            // Then, re-enable interactions.
             this.handManager.getContainer().setInteractive();
 
-            // We are no longer playing, so we can process the next item in the queue.
+            // Finally, update the play state and check for the next action in the queue.
+            // This must be last to ensure all other managers have a consistent state.
             this.isPlaying = false;
             this.processPlayQueue();
         });
 
-        timeline.play();
     }
 
 }

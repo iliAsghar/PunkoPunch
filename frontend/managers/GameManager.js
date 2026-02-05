@@ -166,10 +166,13 @@ class GameManager {
      * Discard a card from hand to discard pile
      */
     discardCard() {
+        // Discard the last card in hand (right-most card)
         if (this.handManager.drawnCards.length > 0) {
-            const card = this.handManager.drawnCards.pop();
-            this.pileManager.discardCard(card);
-            this.handManager.display();
+            const lastCardIndex = this.handManager.drawnCards.length - 1;
+            const cardData = this.handManager.drawnCards[lastCardIndex];
+
+            // Use the PlayManager to handle the animation
+            this.playManager.discardCard(cardData.instanceId);
         }
     }
     

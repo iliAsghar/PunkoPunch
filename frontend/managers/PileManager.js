@@ -176,7 +176,7 @@ class PileManager {
         const discardBtnX = discardPileX;
         const discardBtnY = discardPileY - this.pileHeight / 2 - 40;
         const discardBtn = this.scene.add.rectangle(discardBtnX, discardBtnY, 80, 35, 0x000000)
-            .setInteractive()
+            .setInteractive({ useHandCursor: true })
             .on('pointerover', function() { this.setFillStyle(0x333333); })
             .on('pointerout', function() { this.setFillStyle(0x000000); })
             .on('pointerdown', () => this.scene.gameManager?.discardCard());

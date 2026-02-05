@@ -76,6 +76,7 @@ class HandManager {
         }
 
         // Update the play button's visibility and position
+        this.updateActionButtons();
         this.updatePlayButton();
     }
     
@@ -110,8 +111,9 @@ class HandManager {
         const pileWidth = 80;   // from PileManager
         const discardPileX = width - pilePadding - pileWidth / 2;
         const discardPileLeftEdge = discardPileX - (pileWidth / 2);
+        const buttonSpacing = 200;
 
-        const buttonX = discardPileLeftEdge - 100; // Position button with some space
+        const buttonX = discardPileLeftEdge - 100; // Position button with some space to its left
         const buttonY = height - 100; // Align vertically with other UI elements
 
         this.playButton = this.scene.add.text(0, 0, 'Play', {
@@ -141,10 +143,19 @@ class HandManager {
         });
 
         this.cardsContainer.add(this.playButton);
+        this.updateActionButtons(); // Set initial state
     }
 
     /**
      * Updates the visibility and position of the play button.
+     */
+    updateActionButtons() {
+        // The button should always be visible; its state is handled by updatePlayButton.
+        this.playButton.setVisible(true);
+    }
+
+    /**
+     * Updates the visibility and state of the play button.
      */
     updatePlayButton() {
         const selectedIndex = this.drawnCards.findIndex(card => card.selected);
@@ -167,7 +178,7 @@ class HandManager {
      * Display/re-render the hand with curved layout and rotation
      */
     display() {
-        // Update the button state first, as it might be called before cards are drawn
+        this.updateActionButtons();
         this.updatePlayButton();
 
         // Destroy only the old card objects, leaving the playButton intact.
@@ -366,8 +377,10 @@ class HandManager {
      */
     reorganizeHand() {
         const cardCount = this.drawnCards.length;
+        // If the hand is now empty, there's nothing to reorganize.
+        // The PlayManager handles destroying the last card object.
+        // Calling display() here would cause a race condition.
         if (cardCount === 0) {
-            this.display(); // Just clear everything if the hand is empty
             return;
         }
 
