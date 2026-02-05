@@ -10,5 +10,5 @@
  * in the files under /frontend/assets/cards/ (e.g., 'ph1' from 'ph1.js').
  */
 const DECK1_CARD_IDS = [
-    'ph1', 'ph1', 'ph2', 'ph3', 'ph3', 'ph4', 'ph5', 'ph7', 'ph8', 'ph10'
+    'ph1', 'ph2', 'ph3', 'ph4', 'ph5', 'ph6', 'ph7', 'ph8', 'ph9', 'ph10'
 ];

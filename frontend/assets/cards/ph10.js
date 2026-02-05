@@ -1,4 +1,4 @@
-const ph10 = {
+window.CARD_DATA['ph10'] = {
     id: 'ph10',
     name: 'Placeholder 10',
     value: 10,
@@ -7,7 +7,7 @@ const ph10 = {
 
     // Cost to play this card
     cost: {
-        mana: 2,
+        mana: 3,
     },
 
     // Function to execute when the card is played

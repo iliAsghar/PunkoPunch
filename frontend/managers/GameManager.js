@@ -66,20 +66,11 @@ class GameManager {
         // --- Add Debug Buttons ---
         this.createDebugButtons();
         
-        // Initialize deck with default cards
-        const initialDeck = [
-            { id: 'ph1' },
-            { id: 'ph2' },
-            { id: 'ph3' },
-            { id: 'ph4' },
-            { id: 'ph5' },
-            { id: 'ph6' },
-            { id: 'ph7' },
-            { id: 'ph8' },
-            { id: 'ph9' },
-            { id: 'ph10' }
-        ];
-        
+        // Initialize deck using the loaded deck definition.
+        // DECK1_CARD_IDS is globally available from frontend/decks/deck1.js
+        const initialDeck = DECK1_CARD_IDS.map(cardId => ({
+            id: cardId
+        }));
         this.pileManager.initialize(initialDeck);
         this.pileManager.createUI();
         this.gridManager.initialize();

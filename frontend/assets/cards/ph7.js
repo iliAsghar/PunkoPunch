@@ -1,4 +1,4 @@
-const ph7 = {
+window.CARD_DATA['ph7'] = {
     id: 'ph7',
     name: 'Placeholder 7',
     value: 7,

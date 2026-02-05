@@ -12,7 +12,7 @@
     // List of all other game scripts that need to be loaded AFTER the cards.
     // The order here is important.
     const gameScripts = [
-        'frontend/assets/cardDictionary.js',
+        'frontend/assets/decks/deck1.js', // Load deck definition before GameManager
         'frontend/assets/gridCardDictionary.js',
         'frontend/models/Player.js',
         'frontend/ui/PlayerStatsUI.js',
@@ -42,21 +42,49 @@
     }
 
     // Start the loading process
+    // 1. Create the global card data registry.
+    window.CARD_DATA = {};
+
+    // 2. Load the card manifest.
     loadScript(cardManifestPath)
         .then(() => {
-            // Once the manifest is loaded, CARD_MANIFEST is available globally.
+            // Now CARD_MANIFEST is available globally.
             const cardFiles = CARD_MANIFEST.map(file => cardBasePath + file);
-            const allScriptsToLoad = [...cardFiles, ...gameScripts];
 
-            // Load all scripts sequentially.
-            let promiseChain = Promise.resolve();
-            allScriptsToLoad.forEach(scriptSrc => {
-                promiseChain = promiseChain.then(() => loadScript(scriptSrc));
+            // Create a promise chain that first loads all card files.
+            let cardPromiseChain = Promise.resolve();
+            cardFiles.forEach(scriptSrc => {
+                cardPromiseChain = cardPromiseChain.then(() => loadScript(scriptSrc));
+            });
+            
+            cardPromiseChain = cardPromiseChain.then(() => {
+                // Re-create the getCardInfo utility function globally, as it was previously in cardDictionary.js
+                window.getCardInfo = function(cardId) {
+                    return window.CARD_DATA[cardId] || {
+                        id: cardId,
+                        name: 'Unknown Card',
+                        value: '??',
+                        type: 'unknown',
+                        description: 'This card data could not be found.',
+                        cost: {},
+                        play: () => {
+                            console.error(`Play function not found for card ID: ${cardId}`);
+                        }
+                    };
+                };
+
+                // Now load the rest of the game scripts.
+                let gameScriptPromiseChain = Promise.resolve();
+                gameScripts.forEach(scriptSrc => {
+                    gameScriptPromiseChain = gameScriptPromiseChain.then(() => loadScript(scriptSrc));
+                });
+                return gameScriptPromiseChain;
             });
 
-            return promiseChain;
+            return cardPromiseChain;
         })
         .catch(error => {
             console.error("Failed to load initial game scripts:", error);
         });
+        
 })();
