@@ -27,7 +27,9 @@ class HandManager {
         this.isDrawing = false;
 
         this.playButton = null;
-        this.createPlayButton();
+        this.discardSelectedButton = null;
+        this.discardAllButton = null;
+        this.createActionButtons();
     }
     
     /**
@@ -76,7 +78,7 @@ class HandManager {
         }
 
         // Update the play button's visibility and position
-        this.updateActionButtons();
+        this.updateActionButtonsState();
         this.updatePlayButton();
     }
     
@@ -102,56 +104,95 @@ class HandManager {
     /**
      * Creates the "Play" button, initially hidden.
      */
-    createPlayButton() {
-        // Position the button to the left of the discard pile for a clean UI layout.
+    createActionButtons() {
         const { width, height } = this.scene.game.config;
         
-        // Calculate discard pile's left edge to align the button next to it.
+        // Calculate discard pile position to align the buttons.
         const pilePadding = 30; // from PileManager
         const pileWidth = 80;   // from PileManager
+        const pileHeight = 120; // from PileManager
         const discardPileX = width - pilePadding - pileWidth / 2;
-        const discardPileLeftEdge = discardPileX - (pileWidth / 2);
-        const buttonSpacing = 200;
+        const discardPileY = height - pilePadding - pileHeight / 2;
 
-        const buttonX = discardPileLeftEdge - 100; // Position button with some space to its left
-        const buttonY = height - 100; // Align vertically with other UI elements
-
+        // --- Play Button ---
+        const playButtonX = discardPileX - 150; // Position to the left of the discard pile
+        const playButtonY = height - 100;
         this.playButton = this.scene.add.text(0, 0, 'Play', {
             font: 'bold 30px Arial',
             fill: '#ffffff',
-            backgroundColor: '#28a745', // A nice green color
+            backgroundColor: '#28a745',
             padding: { x: 40, y: 20 },
             borderRadius: 5
         })
         .setOrigin(0.5)
-        .setPosition(buttonX, buttonY)
+        .setPosition(playButtonX, playButtonY)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => { 
-            // Delegate the action to the GameManager
-            this.scene.gameManager?.playSelectedCard();
-        })
+        .on('pointerdown', () => this.scene.gameManager?.playSelectedCard())
         .on('pointerover', () => {
-            // Only show hover effect if the button is enabled
             if (this.playButton.input.enabled) {
                 this.playButton.setBackgroundColor('#218838');
             }
         })
         .on('pointerout', () => {
-            if (this.playButton.input.enabled) {
-                this.playButton.setBackgroundColor('#28a745');
-            }
+            this.playButton.setBackgroundColor('#28a745');
         });
 
-        this.cardsContainer.add(this.playButton);
-        this.updateActionButtons(); // Set initial state
+        // --- Discard Selected Button ---
+        const discardSelectedBtnX = discardPileX;
+        const discardBtnY = discardPileY - pileHeight / 2 - 85; // Position above the other discard button
+        this.discardSelectedButton = this.scene.add.text(0, 0, 'Discard Selected', {
+            font: 'bold 12px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#dc3545', // Red color for discard
+            padding: { x: 10, y: 9 },
+            borderRadius: 3
+        })
+        .setOrigin(0.5)
+        .setPosition(discardSelectedBtnX, discardBtnY)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this.scene.gameManager?.discardSelectedCard())
+        .on('pointerover', () => {
+            if (this.discardSelectedButton.input.enabled) {
+                this.discardSelectedButton.setBackgroundColor('#c82333');
+            }
+        })
+        .on('pointerout', () => {
+            this.discardSelectedButton.setBackgroundColor('#dc3545');
+        });
+
+        // --- Discard All Button ---
+        const discardAllBtnX = discardPileX;
+        const discardAllBtnY = discardBtnY - 35; // Position above 'Discard Selected'
+        this.discardAllButton = this.scene.add.text(0, 0, 'Discard All', {
+            font: 'bold 12px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#dc3545', // Red color for discard
+            padding: { x: 21, y: 9 },
+            borderRadius: 3
+        })
+        .setOrigin(0.5)
+        .setPosition(discardAllBtnX, discardAllBtnY)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this.scene.gameManager?.discardAllCards())
+        .on('pointerover', () => {
+            if (this.discardAllButton.input.enabled) {
+                this.discardAllButton.setBackgroundColor('#c82333');
+            }
+        })
+        .on('pointerout', () => this.discardAllButton.setBackgroundColor('#dc3545'));
+
+        this.cardsContainer.add([this.playButton, this.discardSelectedButton, this.discardAllButton]);
+        this.updateActionButtonsState(); // Set initial state
     }
 
     /**
      * Updates the visibility and position of the play button.
      */
-    updateActionButtons() {
+    updateActionButtonsState() {
         // The button should always be visible; its state is handled by updatePlayButton.
         this.playButton.setVisible(true);
+        this.discardSelectedButton.setVisible(true);
+        this.discardAllButton.setVisible(true);
     }
 
     /**
@@ -159,18 +200,37 @@ class HandManager {
      */
     updatePlayButton() {
         const selectedIndex = this.drawnCards.findIndex(card => card.selected);
+        const handHasCards = this.drawnCards.length > 0;
 
         if (selectedIndex !== -1) {
             // Enable the button
-            this.playButton.input.enabled = true;
             this.playButton.setAlpha(1.0);
+            this.playButton.input.enabled = true;
             this.playButton.setBackgroundColor('#28a745');
+
+            this.discardSelectedButton.setAlpha(1.0);
+            this.discardSelectedButton.input.enabled = true;
+            this.discardSelectedButton.setBackgroundColor('#dc3545');
         } else {
             // Disable the button
-            this.playButton.input.enabled = false;
             this.playButton.setAlpha(0.65);
-            // Use a gray color to indicate it's disabled
+            this.playButton.input.enabled = false;
             this.playButton.setBackgroundColor('#6c757d');
+
+            this.discardSelectedButton.setAlpha(0.65);
+            this.discardSelectedButton.input.enabled = false;
+            this.discardSelectedButton.setBackgroundColor('#6c757d');
+        }
+
+        // Update "Discard All" button state based on whether there are cards in hand
+        if (handHasCards) {
+            this.discardAllButton.setAlpha(1.0);
+            this.discardAllButton.input.enabled = true;
+            this.discardAllButton.setBackgroundColor('#dc3545');
+        } else {
+            this.discardAllButton.setAlpha(0.65);
+            this.discardAllButton.input.enabled = false;
+            this.discardAllButton.setBackgroundColor('#6c757d');
         }
     }
     
@@ -178,7 +238,7 @@ class HandManager {
      * Display/re-render the hand with curved layout and rotation
      */
     display() {
-        this.updateActionButtons();
+        this.updateActionButtonsState();
         this.updatePlayButton();
 
         // Destroy only the old card objects, leaving the playButton intact.

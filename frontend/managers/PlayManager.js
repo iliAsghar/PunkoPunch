@@ -145,6 +145,12 @@ class PlayManager {
             // This must be last to ensure all other managers have a consistent state.
             this.isPlaying = false;
             this.processPlayQueue();
+
+            // After attempting to process the next item, check if all queues are now empty.
+            // If so, and a bulk operation was in progress, we can now end it.
+            if (!this.isPlaying && this.playQueue.length === 0 && this.discardQueue.length === 0) {
+                this.scene.gameManager.isBulkOperationInProgress = false;
+            }
         });
 
     }

@@ -14,6 +14,7 @@ class GameManager {
         this.players = new Map();
         this.playerStatsUIs = new Map();
         this.localPlayerId = 'player1'; // Assuming a local player for now
+        this.isBulkOperationInProgress = false; // To lock actions during 'Discard All'
         this.deathText = null;
     }
     
@@ -119,6 +120,9 @@ class GameManager {
      * Draw a card from deck to hand
      */
     drawCard() {
+        // Prevent drawing if a bulk operation like 'Discard All' is in progress.
+        if (this.isBulkOperationInProgress) return;
+
         const card = this.pileManager.drawCard();
         if (card) {
             this.handManager.drawCardWithAnimation(card.id);
@@ -155,6 +159,48 @@ class GameManager {
     }
 
     /**
+     * Finds the selected card in hand and tells the PlayManager to discard it.
+     */
+    discardSelectedCard() {
+        // Prevent discarding if a bulk operation is in progress.
+        if (this.isBulkOperationInProgress) return;
+
+        const selectedIndex = this.handManager.drawnCards.findIndex(card => card.selected);
+
+        if (selectedIndex !== -1) {
+            const cardData = this.handManager.drawnCards[selectedIndex];
+            this.playManager.discardCard(cardData.instanceId);
+
+            // Immediately unselect the card to prevent it from being spammed into the queue.
+            this.handManager.toggleSelected(selectedIndex);
+        }
+    }
+
+    /**
+     * Queues all cards in the hand to be discarded.
+     */
+    discardAllCards() {
+        // Prevent starting a new bulk operation if one is already running.
+        if (this.isBulkOperationInProgress) return;
+
+        // Copy the array and reverse it to discard from right-to-left.
+        const cardsToDiscard = [...this.handManager.drawnCards].reverse();
+
+        if (cardsToDiscard.length > 0) {
+            // Set the flag to block other actions.
+            this.isBulkOperationInProgress = true;
+
+            cardsToDiscard.forEach(cardData => {
+                this.playManager.discardCard(cardData.instanceId);
+            });
+
+            // If a card was selected, unselect it to reset the button states.
+            const selectedIndex = cardsToDiscard.findIndex(card => card.selected);
+            if (selectedIndex !== -1) this.handManager.toggleSelected(selectedIndex);
+        }
+    }
+
+    /**
      * Redraws all major UI components. Called on window resize.
      */
     redrawUI() {
@@ -163,9 +209,12 @@ class GameManager {
     }
     
     /**
-     * Discard a card from hand to discard pile
+     * Discard the last card from hand to discard pile
      */
     discardCard() {
+        // Prevent discarding if a bulk operation is in progress.
+        if (this.isBulkOperationInProgress) return;
+
         // Discard the last card in hand (right-most card)
         if (this.handManager.drawnCards.length > 0) {
             const lastCardIndex = this.handManager.drawnCards.length - 1;
