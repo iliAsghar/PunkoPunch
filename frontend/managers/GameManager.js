@@ -99,21 +99,11 @@ class GameManager {
     drawCard(count = 1) {
         // Prevent drawing if a bulk operation or another draw is already in progress.
         if (this.isBulkOperationInProgress || this.handManager.isDrawing) return;
-
-        // If the deck is empty, first transfer the discard pile back to the deck.
-        if (this.pileManager.getDeck().length === 0 && this.pileManager.getDiscardPile().length > 0) {
-            this.pileManager.transferDiscardToDeck();
-        }
-
+ 
         // Queue up the requested number of draws.
         for (let i = 0; i < count; i++) {
-            // Check if there are cards to draw before adding to the animation queue.
-            // The actual card removal will happen inside the HandManager's animation queue.
-            if (this.pileManager.getDeck().length > 0) {
-                this.handManager.drawCardWithAnimation();
-            } else {
-                break; // Stop trying to draw if the deck is empty.
-            }
+            // The HandManager will now handle checking for an empty deck and refilling it.
+            this.handManager.drawCardWithAnimation();
         }
     }
     

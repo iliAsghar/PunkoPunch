@@ -399,15 +399,26 @@ class HandManager {
         this.isDrawing = true;
         this.drawQueue.shift(); // Consume the draw token.
 
-        const pileManager = this.scene.gameManager.getPileManager();
-        
+        const gameManager = this.scene.gameManager;
+        const pileManager = gameManager.getPileManager();
+
+        // Check if the deck is empty and needs refilling.
+        if (pileManager.getDeck().length === 0) {
+            if (pileManager.getDiscardPile().length > 0) {
+                // The refill action is now part of the animation chain.
+                pileManager.transferDiscardToDeck();
+            } else {
+                // No cards to draw and no cards in discard. Stop the process.
+                this.isDrawing = false;
+                // We still need to check if there are other items in the queue.
+                this.processDrawQueue();
+                return;
+            }
+        }
+
         // Actually draw the card from the pile now, at the start of the animation.
         // This updates the deck count at the correct time.
         const cardData = pileManager.drawCard();
-        if (!cardData) {
-            this.isDrawing = false;
-            return; // No card was drawn (e.g., deck became empty).
-        }
         const cardId = cardData.id;
         const startPos = pileManager.getDeckPosition();
 
