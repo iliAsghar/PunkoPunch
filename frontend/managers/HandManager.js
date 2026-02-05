@@ -16,6 +16,9 @@ class HandManager {
         this.spacing = 135;
         this.curveStrength = 30;
         this.maxRotation = 0.4; // radians (~23 degrees total spread)
+
+        this.playButton = null;
+        this.createPlayButton();
     }
     
     /**
@@ -55,6 +58,9 @@ class HandManager {
             targetCardData.selected = !wasSelected;
             targetCardObject.setSelected(targetCardData.selected);
         }
+
+        // Update the play button's visibility and position
+        this.updatePlayButton();
     }
     
     /**
@@ -75,13 +81,85 @@ class HandManager {
         });
         this.cardsContainer.removeAll(true);
     }
+
+    /**
+     * Creates the "Play" button, initially hidden.
+     */
+    createPlayButton() {
+        // Position the button to the left of the discard pile for a clean UI layout.
+        const { width, height } = this.scene.game.config;
+        
+        // Calculate discard pile's left edge to align the button next to it.
+        const pilePadding = 30; // from PileManager
+        const pileWidth = 80;   // from PileManager
+        const discardPileX = width - pilePadding - pileWidth / 2;
+        const discardPileLeftEdge = discardPileX - (pileWidth / 2);
+
+        const buttonX = discardPileLeftEdge - 100; // Position button with some space
+        const buttonY = height - 100; // Align vertically with other UI elements
+
+        this.playButton = this.scene.add.text(0, 0, 'Play', {
+            font: 'bold 28px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#28a745', // A nice green color
+            padding: { x: 20, y: 10 },
+            borderRadius: 5
+        })
+        .setOrigin(0.5)
+        .setPosition(buttonX, buttonY)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => {
+            // Only do something if the button is enabled (checked by Phaser's input system)
+            console.log('Play button clicked!'); // Placeholder for play logic
+        })
+        .on('pointerover', () => {
+            // Only show hover effect if the button is enabled
+            if (this.playButton.input.enabled) {
+                this.playButton.setBackgroundColor('#218838');
+            }
+        })
+        .on('pointerout', () => {
+            if (this.playButton.input.enabled) {
+                this.playButton.setBackgroundColor('#28a745');
+            }
+        });
+
+        this.cardsContainer.add(this.playButton);
+    }
+
+    /**
+     * Updates the visibility and position of the play button.
+     */
+    updatePlayButton() {
+        const selectedIndex = this.drawnCards.findIndex(card => card.selected);
+
+        if (selectedIndex !== -1) {
+            // Enable the button
+            this.playButton.input.enabled = true;
+            this.playButton.setAlpha(1.0);
+            this.playButton.setBackgroundColor('#28a745');
+        } else {
+            // Disable the button
+            this.playButton.input.enabled = false;
+            this.playButton.setAlpha(0.65);
+            // Use a gray color to indicate it's disabled
+            this.playButton.setBackgroundColor('#6c757d');
+        }
+    }
     
     /**
      * Display/re-render the hand with curved layout and rotation
      */
     display() {
-        // Clear the container but keep the card data in drawnCards
-        this.cardsContainer.removeAll(true); // This destroys the card game objects
+        // Update the button state first, as it might be called before cards are drawn
+        this.updatePlayButton();
+
+        // Destroy only the old card objects, leaving the playButton intact.
+        this.cardObjects.forEach(cardObj => {
+            cardObj.destroy();
+        });
+
+        // Clear the references and prepare for new card objects
         this.cardObjects = []; // Clear the references
         const cardContainers = []; // To hold the Phaser containers for adding to the scene
 
