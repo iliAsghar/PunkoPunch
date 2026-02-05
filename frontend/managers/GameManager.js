@@ -106,10 +106,10 @@ class GameManager {
 
         if (selectedIndex !== -1) {
             const cardData = this.handManager.drawnCards[selectedIndex];
-            this.playManager.playCard(cardData.instanceId);
 
-            // Immediately unselect the card to prevent it from being spammed into the queue.
-            this.handManager.toggleSelected(selectedIndex);
+            // Clear the selection *before* queueing the card to be played.
+            this.handManager.clearSelection();
+            this.playManager.playCard(cardData.instanceId);
         }
     }
 
@@ -124,10 +124,10 @@ class GameManager {
 
         if (selectedIndex !== -1) {
             const cardData = this.handManager.drawnCards[selectedIndex];
-            this.playManager.discardCard(cardData.instanceId);
 
-            // Immediately unselect the card to prevent it from being spammed into the queue.
-            this.handManager.toggleSelected(selectedIndex);
+            // Clear the selection *before* queueing the card to be discarded.
+            this.handManager.clearSelection();
+            this.playManager.discardCard(cardData.instanceId);
         }
     }
 
@@ -145,10 +145,7 @@ class GameManager {
 
             // First, find and unselect any selected card. This must happen before
             // we start queueing discards to prevent visual glitches.
-            const selectedIndex = hand.findIndex(card => card.selected);
-            if (selectedIndex !== -1) {
-                this.handManager.toggleSelected(selectedIndex);
-            }
+            this.handManager.clearSelection();
 
             // Now, queue all cards for discard, from right-to-left for a better visual effect.
             const cardsToDiscard = [...hand].reverse();

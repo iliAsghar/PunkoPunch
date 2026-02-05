@@ -59,25 +59,38 @@ class HandManager {
      * Toggles the selected state of a card in hand and redisplays the hand.
      */
     toggleSelected(index) {
-        const wasSelected = this.drawnCards[index].selected;
+        const isCurrentlySelected = this.drawnCards[index]?.selected;
 
-        // First, unselect all other cards
+        // Always clear any existing selection first.
+        this.clearSelection();
+
+        // If the card was not selected before, select it now.
+        if (!isCurrentlySelected) {
+            const targetCardData = this.drawnCards[index];
+            const targetCardObject = this.cardObjects[index];
+            if (targetCardData && targetCardObject) {
+                targetCardData.selected = true;
+                targetCardObject.setSelected(true);
+            }
+        }
+
+        // Update the action buttons based on the new selection state.
+        this.updateActionButtonsState();
+        this.updatePlayButton();
+    }
+
+    /**
+     * Clears the selection from any card in the hand.
+     */
+    clearSelection() {
         this.drawnCards.forEach((cardData, i) => {
-            if (i !== index && cardData.selected) {
+            if (cardData.selected) {
                 cardData.selected = false;
                 this.cardObjects[i]?.setSelected(false);
             }
         });
-
-        // Then, toggle the clicked card's state
-        const targetCardData = this.drawnCards[index];
-        const targetCardObject = this.cardObjects[index];
-        if (targetCardData && targetCardObject) {
-            targetCardData.selected = !wasSelected;
-            targetCardObject.setSelected(targetCardData.selected);
-        }
-
-        // Update the play button's visibility and position
+        
+        // After clearing, always update the buttons to their disabled/default state.
         this.updateActionButtonsState();
         this.updatePlayButton();
     }
@@ -300,11 +313,12 @@ class HandManager {
      * @param {number} removedIndex The index of the card that was removed.
      */
     animateHandAfterPlay(removedIndex) {
-        // Update the data model first. The card object was already destroyed by its animation.
+        // First, update the data model. The card object being animated away is handled by PlayManager.
+        // We need to remove our reference to it so the hand reorganizes correctly.
         this.drawnCards.splice(removedIndex, 1);
         this.cardObjects.splice(removedIndex, 1);
 
-        // Animate the remaining cards to their new positions.
+        // Now, animate the remaining cards to their new, correct positions.
         this.reorganizeHand();
     }
 
@@ -418,17 +432,14 @@ class HandManager {
     /**
      * Calculates and animates all cards in the hand to their correct positions.
      * This is the core function for making the hand layout smooth.
+     * @param {number} [removedIndex=-1] - The index of a card being removed. If provided, its animation is skipped.
      */
     reorganizeHand() {
         const cardCount = this.drawnCards.length;
-        // If the hand is now empty, there's nothing to reorganize.
-        // The PlayManager handles destroying the last card object.
-        // Calling display() here would cause a race condition.
         if (cardCount === 0) {
+            // If the hand is now empty, there's nothing to reorganize.
             return;
         }
-
-        const { width } = this.scene.game.config;
 
         // --- Animate each card to its new calculated position ---
         this.cardObjects.forEach((cardObj, index) => {

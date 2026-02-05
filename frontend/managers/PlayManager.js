@@ -81,6 +81,10 @@ class PlayManager {
         cardObject.getContainer().disableInteractive();
         this.handManager.getContainer().disableInteractive();
 
+        // --- Trigger the hand reorganization immediately ---
+        // This makes the hand smoothly close the gap while the card is animating away.
+        this.handManager.animateHandAfterPlay(cardIndex);
+
         // Get positions for the animation sequence
         const { width, height } = this.scene.game.config;
         const centerX = width / 2;
@@ -135,7 +139,6 @@ class PlayManager {
             // The order here is critical to prevent race conditions, especially with the last card.
             // First, perform all data and model updates.
             cardContainer.destroy();
-            this.handManager.animateHandAfterPlay(cardIndex);
             this.pileManager.discardCard(cardData);
 
             // Then, re-enable interactions.
