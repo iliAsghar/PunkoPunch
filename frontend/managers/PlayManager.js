@@ -120,7 +120,17 @@ class PlayManager {
                 ease: 'Power2'
             });
 
-            // Part 2: Animate the card to the discard pile while shrinking and rotating.
+            // Part 2: Add a "thump" or "pulse" effect after it arrives.
+            timeline.add({
+                targets: cardContainer,
+                scale: 1.0, // Scale down slightly from 1.1
+                duration: 100,
+                ease: 'Power1',
+                yoyo: true, // This makes it automatically scale back up to 1.1
+                offset: '+=50' // Start this animation slightly before the previous one ends for a smoother feel.
+            });
+
+            // Part 3: Animate the card to the discard pile while shrinking and rotating.
             timeline.add({
                 targets: cardContainer,
                 x: discardPilePosition.x,
@@ -129,7 +139,7 @@ class PlayManager {
                 scale: 0, // Shrink to nothing
                 duration: 400,
                 ease: 'Cubic.easeIn',
-                offset: '+=250' // This creates a 250ms pause after the first tween.
+                offset: '+=500' // This creates a 500ms pause after the "thump" animation.
             });
 
             timeline.play();
