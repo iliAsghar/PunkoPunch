@@ -184,20 +184,23 @@ class GameManager {
         // Prevent starting a new bulk operation if one is already running.
         if (this.isBulkOperationInProgress) return;
 
-        // Copy the array and reverse it to discard from right-to-left.
-        const cardsToDiscard = [...this.handManager.drawnCards].reverse();
-
-        if (cardsToDiscard.length > 0) {
+        const hand = this.handManager.getCards();
+        if (hand.length > 0) {
             // Set the flag to block other actions.
             this.isBulkOperationInProgress = true;
 
+            // First, find and unselect any selected card. This must happen before
+            // we start queueing discards to prevent visual glitches.
+            const selectedIndex = hand.findIndex(card => card.selected);
+            if (selectedIndex !== -1) {
+                this.handManager.toggleSelected(selectedIndex);
+            }
+
+            // Now, queue all cards for discard, from right-to-left for a better visual effect.
+            const cardsToDiscard = [...hand].reverse();
             cardsToDiscard.forEach(cardData => {
                 this.playManager.discardCard(cardData.instanceId);
             });
-
-            // If a card was selected, unselect it to reset the button states.
-            const selectedIndex = cardsToDiscard.findIndex(card => card.selected);
-            if (selectedIndex !== -1) this.handManager.toggleSelected(selectedIndex);
         }
     }
 
