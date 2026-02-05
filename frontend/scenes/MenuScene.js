@@ -7,7 +7,7 @@ class MenuScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        this.add.text(width / 2, height / 2 - 300, "thanks for testing this. I'm talking to you sith! ;D", {
+        this.add.text(width / 2, height / 2 - 300, "thanks for testing this you goob! ;D", {
             font: 'bold 32px Arial',
             fill: '#000000'
         }).setOrigin(0.5);
