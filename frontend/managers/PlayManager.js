@@ -24,10 +24,6 @@ class PlayManager {
 
         console.log(`card ${cardData.id} was played`);
 
-        const { width, height } = this.scene.game.config;
-        const centerX = width / 2;
-        const centerY = height / 2;
-
         // 1. Reparent the card to the main game container to escape the HandManager's render order.
         const cardContainer = cardObject.getContainer();
         this.scene.gameManager.mainContainer.add(cardContainer);
@@ -39,7 +35,13 @@ class PlayManager {
         cardObject.getContainer().disableInteractive();
         this.handManager.getContainer().disableInteractive();
 
-        // Use a timeline to sequence the animations: move, pause, then shrink.
+        // Get positions for the animation sequence
+        const { width, height } = this.scene.game.config;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const discardPilePosition = this.pileManager.getDiscardPilePosition();
+
+        // Use a timeline to sequence the animations: move to center, pause, then move to discard.
         const timeline = this.scene.tweens.createTimeline();
 
         // Part 1: Animate the card to the center of the screen.
@@ -48,28 +50,23 @@ class PlayManager {
             x: centerX,
             y: centerY,
             rotation: 0, // Straighten the card
+            scale: 1.1,  // Slightly enlarge it for focus
             duration: 300,
             ease: 'Power2'
         });
 
-        // Part 2: Animate the card scaling down to zero after a pause.
+        // Part 2: Animate the card to the discard pile while shrinking and rotating.
         timeline.add({
             targets: cardContainer,
-            scale: 1.1,
-            duration: 30,
-            ease: 'Power2.easeIn',
-            offset: '+=250' // This creates a 250ms pause after the previous tween completes.
+            x: discardPilePosition.x,
+            y: discardPilePosition.y,
+            rotation: Phaser.Math.DegToRad(45),
+            scale: 0, // Shrink to nothing
+            duration: 400,
+            ease: 'Cubic.easeIn',
+            offset: '+=250' // This creates a 250ms pause after the first tween.
         });
 
-        timeline.add({
-            targets: cardContainer,
-            scale: 0,
-            duration: 150,
-            ease: 'Power2.easeIn',
-            offset: '+=50'
-        });
-
-        // When the entire timeline is finished, update the game state.
         timeline.on('complete', () => {
             // 1. Destroy the card's container after the animation is done.
             cardContainer.destroy();

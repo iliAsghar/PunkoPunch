@@ -21,6 +21,9 @@ class GameManager {
      * Initialize the game
      */
     initialize() {
+        // Expose the GameManager to the scene immediately so other managers can access it.
+        this.scene.gameManager = this;
+
         // Create managers
         this.handManager = new HandManager(this.scene, this.mainContainer);
         this.pileManager = new PileManager(this.scene, this.mainContainer);
@@ -109,13 +112,7 @@ class GameManager {
         this.pileManager.createUI();
         this.gridManager.initialize();
 
-        // Draw the initial hand of 5 cards
-        for (let i = 0; i < 5; i++) {
-            this.drawCard();
-        }
-        
-        // Expose to scene for button callbacks
-        this.scene.gameManager = this;
+        this.drawInitialHand(5);
     }
     
     /**
@@ -124,8 +121,22 @@ class GameManager {
     drawCard() {
         const card = this.pileManager.drawCard();
         if (card) {
-            this.handManager.addCard(card.id);
+            this.handManager.drawCardWithAnimation(card.id);
         }
+    }
+
+    /**
+     * Draws the initial hand without animation to prevent layout issues.
+     * @param {number} handSize The number of cards to draw.
+     */
+    drawInitialHand(handSize) {
+        const initialCards = [];
+        for (let i = 0; i < handSize; i++) {
+            const card = this.pileManager.drawCard();
+            if (card) initialCards.push(card.id);
+        }
+        // Add all cards to the data model first, then display them all at once.
+        this.handManager.drawInitialHand(initialCards);
     }
     
     /**

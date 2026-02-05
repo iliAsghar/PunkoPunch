@@ -22,6 +22,9 @@ class HandManager {
         this.curveStrength = 30;
         this.maxRotation = 0.4; // radians (~23 degrees total spread)
 
+        this.drawQueue = [];
+        this.isDrawing = false;
+
         this.playButton = null;
         this.createPlayButton();
     }
@@ -30,16 +33,15 @@ class HandManager {
      * Add a card to the hand
      */
     addCard(cardId) {
+        // This now bypasses animation. Use drawCardWithAnimation for animated drawing.
         this.drawnCards.push({ id: cardId, isFlipped: false, selected: false });
-        this.display();
+        this.reorganizeHand();
     }
     
     /**
      * Remove a card from the hand by index
      */
     removeCard(index) {
-        // We only want to remove the data. The card object is destroyed by the animation.
-        // The display() call will handle rebuilding the cardObjects array.
         // This is now primarily for non-play actions. For playing cards,
         // use animateHandAfterPlay for a smoother transition.
         this.animateHandAfterPlay(index);
@@ -229,18 +231,153 @@ class HandManager {
      * @param {number} removedIndex The index of the card that was removed.
      */
     animateHandAfterPlay(removedIndex) {
-        // The card object was destroyed by PlayManager. Now we update our data model
-        // to reflect this change before calculating the new positions for the remaining cards.
+        // Update the data model first. The card object was already destroyed by its animation.
         this.drawnCards.splice(removedIndex, 1);
-        this.cardObjects.splice(removedIndex, 1); // This updates the array for the *next* operation.
+        this.cardObjects.splice(removedIndex, 1);
 
-        // --- Calculate new positions for the remaining cards ---
+        // Animate the remaining cards to their new positions.
+        this.reorganizeHand();
+    }
+
+    /**
+     * Populates the hand with an initial set of cards and displays them without animation.
+     * @param {string[]} cardIds An array of card IDs to add to the hand.
+     */
+    drawInitialHand(cardIds) {
+        cardIds.forEach(cardId => {
+            this.drawnCards.push({ id: cardId, isFlipped: false, selected: false });
+        });
+        // Use the synchronous display method to render the full hand correctly.
+        this.display();
+    }
+
+    /**
+     * Animates drawing a card from the deck pile into the hand.
+     * @param {string} cardId The ID of the card being drawn.
+     */
+    drawCardWithAnimation(cardId) {
+        this.drawQueue.push(cardId);
+        this.processDrawQueue();
+    }
+
+    /**
+     * Processes the next card in the draw queue if not already drawing.
+     */
+    processDrawQueue() {
+        if (this.isDrawing || this.drawQueue.length === 0) {
+            return;
+        }
+
+        this.isDrawing = true;
+        const cardId = this.drawQueue.shift();
+
+        const pileManager = this.scene.gameManager.getPileManager();
+        const startPos = pileManager.getDeckPosition();
+
+        // Create a temporary card for the animation.
+        const tempCard = new Card(this.scene, startPos.x, startPos.y, cardId, {
+            width: this.cardWidth,
+            height: this.cardHeight,
+            interactive: false,
+        });
+        
+        // Add it to the main container so it's on top of the hand during animation.
+        this.scene.gameManager.mainContainer.add(tempCard.getContainer());
+        tempCard.getContainer().setDepth(5); // Below the play-card animation, but above the hand.
+
+        // Set initial animation state.
+        tempCard.getContainer().setScale(0.2);
+        tempCard.getContainer().setRotation(Phaser.Math.DegToRad(-45));
+
+        // --- Animate existing cards to make space for the new one ---
+        // We calculate positions for a hand size that is one larger than current.
+        const finalCardCount = this.cardObjects.length + 1;
+        this.cardObjects.forEach((cardObj, index) => {
+            const newProps = this.calculateCardTransform(index, finalCardCount);
+            this.scene.tweens.add({ targets: cardObj.getContainer(), x: newProps.x, y: newProps.y, rotation: newProps.rotation, duration: 250, ease: 'Cubic.easeOut' });
+        });
+
+        // --- Calculate the final destination for the new card ---
+        const finalProps = this.calculateCardTransform(this.cardObjects.length, finalCardCount);
+
+        // --- Animate the new card flying into place ---
+        this.scene.tweens.add({
+            targets: tempCard.getContainer(),
+            x: finalProps.x,
+            y: finalProps.y,
+            rotation: finalProps.rotation,
+            scale: 1,
+            duration: 400,
+            ease: 'Cubic.easeOut',
+            onComplete: () => {
+                // Animation is done. Destroy the temporary card.
+                tempCard.destroy();
+
+                // Officially add the card data to the hand model
+                const newCardData = { id: cardId, isFlipped: false, selected: false };
+                this.drawnCards.push(newCardData);
+
+                // Create the final, interactive card in the hand.
+                const finalCard = new Card(this.scene, finalProps.x, finalProps.y, cardId, {
+                    width: this.cardWidth,
+                    height: this.cardHeight,
+                    rotation: finalProps.rotation,
+                    interactive: true,
+                    hoverMoveDistance: 30,
+                    hoverZoom: 1.1,
+                    onClick: () => this.toggleSelected(this.drawnCards.length - 1)
+                });
+
+                // Add the final card to the hand's data structures.
+                this.cardsContainer.add(finalCard.getContainer());
+                this.cardObjects.push(finalCard);
+
+                // The hand has changed, so we must update all onClick handlers
+                // to use the correct new indices.
+                this.cardObjects.forEach((cardObj, index) => {
+                    cardObj.onClick = () => this.toggleSelected(index);
+                });
+
+                // We are no longer drawing, so we can process the next item in the queue.
+                this.isDrawing = false;
+                this.processDrawQueue();
+            }
+        });
+    }
+
+    /**
+     * Calculates and animates all cards in the hand to their correct positions.
+     * This is the core function for making the hand layout smooth.
+     */
+    reorganizeHand() {
         const cardCount = this.drawnCards.length;
         if (cardCount === 0) {
             this.display(); // Just clear everything if the hand is empty
             return;
         }
 
+        const { width } = this.scene.game.config;
+
+        // --- Animate each card to its new calculated position ---
+        this.cardObjects.forEach((cardObj, index) => {
+            const newProps = this.calculateCardTransform(index, cardCount);
+
+            // Update the card's internal position and its onClick callback index
+            cardObj.setPosition(newProps.x, newProps.y);
+            cardObj.onClick = () => this.toggleSelected(index);
+
+            this.scene.tweens.add({
+                targets: cardObj.getContainer(),
+                x: newProps.x,
+                y: newProps.y,
+                rotation: newProps.rotation,
+                duration: 250,
+                ease: 'Cubic.easeOut'
+            });
+        });
+    }
+
+    calculateCardTransform(index, cardCount) {
         const { width } = this.scene.game.config;
         const handY = this.scene.game.config.height - 50;
         let currentSpacing = this.spacing;
@@ -254,27 +391,13 @@ class HandManager {
         const totalWidth = (cardCount - 1) * currentSpacing;
         const startX = (width - totalWidth) / 2;
 
-        // --- Animate each remaining card to its new position ---
-        this.cardObjects.forEach((cardObj, index) => { // Animate the NEW cardObjects array
-            const newX = startX + index * currentSpacing;
-            const distFromCenter = Math.abs(index - (cardCount - 1) / 2);
-            const newY = handY - Math.cos(distFromCenter * 0.5) * this.curveStrength;
-            const normalizedIndex = index - (cardCount - 1) / 2;
-            const newRotation = (normalizedIndex / cardCount) * this.maxRotation;
+        const x = startX + index * currentSpacing;
+        const distFromCenter = Math.abs(index - (cardCount - 1) / 2);
+        const y = handY - Math.cos(distFromCenter * 0.5) * this.curveStrength;
+        const normalizedIndex = index - (cardCount - 1) / 2;
+        const rotation = (normalizedIndex / cardCount) * this.maxRotation;
 
-            // Update the card's internal position and its onClick callback index
-            cardObj.setPosition(newX, newY);
-            cardObj.onClick = () => this.toggleSelected(index);
-
-            this.scene.tweens.add({
-                targets: cardObj.getContainer(),
-                x: newX,
-                y: newY,
-                rotation: newRotation,
-                duration: 250,
-                ease: 'Cubic.easeOut'
-            });
-        });
+        return { x, y, rotation };
     }
 
     /**

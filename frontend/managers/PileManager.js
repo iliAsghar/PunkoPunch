@@ -385,4 +385,22 @@ class PileManager {
         drawModalContents();
         this.scene.scale.on('resize', drawModalContents, this);
     }
+
+    /**
+     * Gets the world coordinates of the deck pile container.
+     * @returns {{x: number, y: number}}
+     */
+    getDeckPosition() {
+        if (!this.deckPileContainer) return { x: 0, y: 0 };
+        return { x: this.deckPileContainer.x, y: this.deckPileContainer.y };
+    }
+
+    /**
+     * Gets the world coordinates of the discard pile container.
+     * @returns {{x: number, y: number}}
+     */
+    getDiscardPilePosition() {
+        if (!this.discardPileContainer) return { x: 0, y: 0 };
+        return { x: this.discardPileContainer.x, y: this.discardPileContainer.y };
+    }
 }
