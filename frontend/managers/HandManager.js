@@ -9,6 +9,11 @@ class HandManager {
         this.cardObjects = []; // To hold the Card component instances
         this.cardsContainer = this.scene.add.container(0, 0);
         parentContainer.add(this.cardsContainer);
+
+        // Set a size for the container. This is crucial for making the container itself
+        // interactive, which allows us to enable/disable input for all its children at once.
+        const { width, height } = scene.game.config;
+        this.cardsContainer.setSize(width, height);
         
         // Hand display constants
         this.cardWidth = 120;
@@ -33,7 +38,9 @@ class HandManager {
      * Remove a card from the hand by index
      */
     removeCard(index) {
-        this.drawnCards.splice(index, 1);
+        // We only want to remove the data. The card object is destroyed by the animation.
+        // The display() call will handle rebuilding the cardObjects array.
+        this.drawnCards.splice(index, 1); 
         this.display();
     }
 
@@ -99,18 +106,18 @@ class HandManager {
         const buttonY = height - 100; // Align vertically with other UI elements
 
         this.playButton = this.scene.add.text(0, 0, 'Play', {
-            font: 'bold 28px Arial',
+            font: 'bold 30px Arial',
             fill: '#ffffff',
             backgroundColor: '#28a745', // A nice green color
-            padding: { x: 20, y: 10 },
+            padding: { x: 40, y: 20 },
             borderRadius: 5
         })
         .setOrigin(0.5)
         .setPosition(buttonX, buttonY)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => {
-            // Only do something if the button is enabled (checked by Phaser's input system)
-            console.log('Play button clicked!'); // Placeholder for play logic
+        .on('pointerdown', () => { 
+            // Delegate the action to the GameManager
+            this.scene.gameManager?.playSelectedCard();
         })
         .on('pointerover', () => {
             // Only show hover effect if the button is enabled

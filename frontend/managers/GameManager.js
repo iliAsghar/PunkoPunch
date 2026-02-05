@@ -9,6 +9,7 @@ class GameManager {
         this.maxPlayersPerTeam = gameSettings.maxPlayersPerTeam || 2; // Default to 2 if not set
         this.handManager = null;
         this.pileManager = null;
+        this.playManager = null;
         this.gridManager = null;
         this.players = new Map();
         this.playerStatsUIs = new Map();
@@ -23,6 +24,7 @@ class GameManager {
         // Create managers
         this.handManager = new HandManager(this.scene, this.mainContainer);
         this.pileManager = new PileManager(this.scene, this.mainContainer);
+        this.playManager = new PlayManager(this.scene, this.handManager, this.pileManager);
         this.gridManager = new GridManager(this.scene, this.mainContainer, {
             rows: Math.min(this.maxPlayersPerTeam, 4) + 1,
             cols: 7
@@ -126,6 +128,21 @@ class GameManager {
         }
     }
     
+    /**
+     * Finds the selected card in hand and tells the PlayManager to play it.
+     */
+    playSelectedCard() {
+        const selectedIndex = this.handManager.drawnCards.findIndex(card => card.selected);
+
+        if (selectedIndex !== -1) {
+            const cardData = this.handManager.drawnCards[selectedIndex];
+            const cardObject = this.handManager.cardObjects[selectedIndex];
+
+            // Delegate the play logic to the PlayManager
+            this.playManager.playCard(selectedIndex, cardData, cardObject);
+        }
+    }
+
     /**
      * Redraws all major UI components. Called on window resize.
      */
