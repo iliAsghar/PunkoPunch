@@ -91,12 +91,15 @@ class BaseCard {
         this.container.on('pointerout', () => this.onHoverEnd());
         this.container.on('pointerup', () => this.onPointerUp());
         this.container.on('pointerupoutside', () => this.onPointerUp());
-        this.container.on('pointerdown', (pointer) => {
+        // A 'pointerdown' event on a GameObject provides (pointer, localX, localY, event)
+        // We need both the pointer and the DOM event.
+        this.container.on('pointerdown', (pointer, localX, localY, event) => {
             if (pointer.rightButtonDown()) {
                 if (this.allowViewscreen) {
                     this.showViewscreen();
                 }
             } else {
+                // Stop the event from propagating to the overlay if this card is inside a modal.
                 this.onPointerDown();
                 if (this.onClick) {
                     this.onClick();
@@ -280,11 +283,20 @@ class BaseCard {
                 interactive: true,
                 allowViewscreen: false,
                 isFlipped: this.isFlipped,
+                hoverMoveDistance: 0, // Disable hover movement
+                hoverZoom: 1,         // Disable hover zoom
+                // Set the click action for the large card to be a flip.
+                // This will apply to both HandCards and GridCards in viewscreen mode.
+                onClick: () => card.flip()
             });
 
-            card.getContainer().on('pointerdown', (pointer) => {
-                pointer.stopPropagation();
-            });
+            // When a GameObject is clicked, Phaser emits 'pointerdown' with (gameObject, pointer, event).
+            // We need the third argument, the DOM event, to stop propagation to the overlay.
+            // This listener is now redundant because the main listener in setupInteractivity handles it.
+            /* card.getContainer().on('pointerdown', (gameObject, pointer, event) => {
+                // This prevents the click from bubbling up to the overlay and closing the modal.
+                event.stopPropagation();
+            }); */
             return card;
         };
 
