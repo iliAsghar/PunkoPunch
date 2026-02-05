@@ -100,6 +100,11 @@ class GameManager {
         // Prevent drawing if a bulk operation or another draw is already in progress.
         if (this.isBulkOperationInProgress || this.handManager.isDrawing) return;
 
+        // If the deck is empty, first transfer the discard pile back to the deck.
+        if (this.pileManager.getDeck().length === 0 && this.pileManager.getDiscardPile().length > 0) {
+            this.pileManager.transferDiscardToDeck();
+        }
+
         // Queue up the requested number of draws.
         for (let i = 0; i < count; i++) {
             // Check if there are cards to draw before adding to the animation queue.
