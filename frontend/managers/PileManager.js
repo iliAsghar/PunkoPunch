@@ -163,11 +163,25 @@ class PileManager {
         const drawBtnY = deckPileY - this.pileHeight / 2 - 40;
         const drawBtn = this.scene.add.rectangle(drawBtnX, drawBtnY, 80, 35, 0x000000)
             .setInteractive()
+            .on('pointerdown', () => this.scene.gameManager?.drawCard(1))
             .on('pointerover', function() { this.setFillStyle(0x333333); })
-            .on('pointerout', function() { this.setFillStyle(0x000000); })
-            .on('pointerdown', () => this.scene.gameManager?.drawCard());
+            .on('pointerout', function() { this.setFillStyle(0x000000); });
         
         const drawBtnText = this.scene.add.text(drawBtnX, drawBtnY, 'Draw', {
+            font: 'bold 12px Arial',
+            fill: '#ffffff'
+        }).setOrigin(0.5);
+
+        // Draw 5 button above the single draw button
+        const draw5BtnX = drawBtnX;
+        const draw5BtnY = drawBtnY - 45; // Position it 45px above the other button
+        const draw5Btn = this.scene.add.rectangle(draw5BtnX, draw5BtnY, 80, 35, 0x007bff) // A nice blue color
+            .setInteractive()
+            .on('pointerdown', () => this.scene.gameManager?.drawCard(5))
+            .on('pointerover', function() { this.setFillStyle(0x0056b3); })
+            .on('pointerout', function() { this.setFillStyle(0x007bff); });
+
+        const draw5BtnText = this.scene.add.text(draw5BtnX, draw5BtnY, 'Draw 5', {
             font: 'bold 12px Arial',
             fill: '#ffffff'
         }).setOrigin(0.5);
@@ -204,8 +218,10 @@ class PileManager {
 
         // Add all UI elements to the container
         this.uiContainer.add([
+            draw5Btn,
+            draw5BtnText,
             drawBtn,
-            drawBtnText
+            drawBtnText,
         ]);
     }
     
