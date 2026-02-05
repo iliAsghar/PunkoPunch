@@ -122,10 +122,11 @@ class GameManager {
     drawCard() {
         // Prevent drawing if a bulk operation like 'Discard All' is in progress.
         if (this.isBulkOperationInProgress) return;
-
-        const card = this.pileManager.drawCard();
-        if (card) {
-            this.handManager.drawCardWithAnimation(card.id);
+ 
+        // Check if there are cards to draw before starting the animation process.
+        // The actual card removal will happen inside the HandManager's animation queue.
+        if (this.pileManager.getDeck().length > 0) {
+            this.handManager.drawCardWithAnimation();
         }
     }
 

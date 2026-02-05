@@ -337,8 +337,8 @@ class HandManager {
      * Animates drawing a card from the deck pile into the hand.
      * @param {string} cardId The ID of the card being drawn.
      */
-    drawCardWithAnimation(cardId) {
-        this.drawQueue.push(cardId);
+    drawCardWithAnimation() {
+        this.drawQueue.push(true); // Push a token to represent a draw action.
         this.processDrawQueue();
     }
 
@@ -351,9 +351,18 @@ class HandManager {
         }
 
         this.isDrawing = true;
-        const cardId = this.drawQueue.shift();
+        this.drawQueue.shift(); // Consume the draw token.
 
         const pileManager = this.scene.gameManager.getPileManager();
+        
+        // Actually draw the card from the pile now, at the start of the animation.
+        // This updates the deck count at the correct time.
+        const cardData = pileManager.drawCard();
+        if (!cardData) {
+            this.isDrawing = false;
+            return; // No card was drawn (e.g., deck became empty).
+        }
+        const cardId = cardData.id;
         const startPos = pileManager.getDeckPosition();
 
         // Create a temporary card for the animation.
