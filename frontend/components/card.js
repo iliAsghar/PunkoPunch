@@ -310,21 +310,22 @@ class Card {
     setSelected(isSelected) {
         this.isSelected = isSelected;
 
-        // Stop any existing tweens on this card to prevent conflicts,
-        // especially if the selection changes the card's appearance or position.
-        this.scene.tweens.killTweensOf(this.container);
-
         if (this.isSelected) {
+            // When selecting, we want an immediate visual change, so killing tweens is okay.
+            this.scene.tweens.killTweensOf(this.container);
             this.cardRect.setStrokeStyle(4, 0xffa500, 1); // Orange glow for selected
         } else {
-            // If the card is being deselected but is still hovered, we should
-            // re-apply the hover state to avoid it snapping back to the unhovered state.
-            if (this.isHovered) {
-                this.cardRect.setStrokeStyle(2, 0x000000); // Set default border before starting hover
-                this.onHoverStart();
-            } else {
-                this.cardRect.setStrokeStyle(2, 0x000000); // Default black border
+            // When deselecting, check if an 'unhover' animation is active.
+            // If so, let it finish and just set the final border style.
+            const activeTweens = this.scene.tweens.getTweensOf(this.container);
+            if (activeTweens.length > 0) {
+                // An animation is running. Don't kill it.
+                // Instead, set the border style when it completes.
+                activeTweens[0].once('complete', () => {
+                    this.cardRect.setStrokeStyle(2, 0x000000);
+                });
             }
+            this.cardRect.setStrokeStyle(2, 0x000000); // Set default black border immediately
         }
     }
     
