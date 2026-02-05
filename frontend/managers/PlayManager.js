@@ -152,7 +152,10 @@ class PlayManager {
             // After attempting to process the next item, check if all queues are now empty.
             // If so, and a bulk operation was in progress, we can now end it.
             if (!this.isPlaying && this.playQueue.length === 0 && this.discardQueue.length === 0) {
-                this.scene.gameManager.isBulkOperationInProgress = false;
+                if (this.scene.gameManager.isBulkOperationInProgress) {
+                    this.scene.gameManager.isBulkOperationInProgress = false;
+                    this.scene.events.emit('bulkDiscardComplete'); // Signal that the bulk operation is done.
+                }
             }
         });
 

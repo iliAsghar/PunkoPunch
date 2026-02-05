@@ -29,6 +29,7 @@ class HandManager {
         this.playButton = null;
         this.discardSelectedButton = null;
         this.discardAllButton = null;
+        this.endTurnButton = null;
         this.createActionButtons();
     }
     
@@ -134,8 +135,8 @@ class HandManager {
             font: 'bold 30px Arial',
             fill: '#ffffff',
             backgroundColor: '#28a745',
-            padding: { x: 40, y: 20 },
-            borderRadius: 5
+            padding: { x: 40, y: 10 },
+            borderRadius: 10
         })
         .setOrigin(0.5)
         .setPosition(playButtonX, playButtonY)
@@ -194,7 +195,31 @@ class HandManager {
         })
         .on('pointerout', () => this.discardAllButton.setBackgroundColor('#dc3545'));
 
-        this.cardsContainer.add([this.playButton, this.discardSelectedButton, this.discardAllButton]);
+        // --- End Turn Button ---
+        const endTurnButtonX = playButtonX;
+        const endTurnButtonY = playButtonY + 65; // Position below the Play button
+        this.endTurnButton = this.scene.add.text(0, 0, 'End Turn', {
+            font: 'bold 24px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#17a2b8', // A nice teal/cyan color
+            padding: { x: 30, y: 8 },
+            borderRadius: 8
+        })
+        .setOrigin(0.5)
+        .setPosition(endTurnButtonX, endTurnButtonY)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this.scene.gameManager?.endTurn())
+        .on('pointerover', () => {
+            if (this.endTurnButton.input.enabled) {
+                this.endTurnButton.setBackgroundColor('#138496');
+            }
+        })
+        .on('pointerout', () => {
+            this.endTurnButton.setBackgroundColor('#17a2b8');
+        });
+
+
+        this.cardsContainer.add([this.playButton, this.discardSelectedButton, this.discardAllButton, this.endTurnButton]);
         this.updateActionButtonsState(); // Set initial state
     }
 
@@ -206,6 +231,7 @@ class HandManager {
         this.playButton.setVisible(true);
         this.discardSelectedButton.setVisible(true);
         this.discardAllButton.setVisible(true);
+        this.endTurnButton.setVisible(true);
     }
 
     /**
@@ -244,6 +270,20 @@ class HandManager {
             this.discardAllButton.setAlpha(0.65);
             this.discardAllButton.input.enabled = false;
             this.discardAllButton.setBackgroundColor('#6c757d');
+        }
+    }
+
+    /**
+     * Updates the enabled/disabled state of the End Turn button.
+     * @param {boolean} isEnabled 
+     */
+    updateEndTurnButton(isEnabled) {
+        if (isEnabled) {
+            this.endTurnButton.setAlpha(1.0).input.enabled = true;
+            this.endTurnButton.setBackgroundColor('#17a2b8');
+        } else {
+            this.endTurnButton.setAlpha(0.65).input.enabled = false;
+            this.endTurnButton.setBackgroundColor('#6c757d');
         }
     }
     

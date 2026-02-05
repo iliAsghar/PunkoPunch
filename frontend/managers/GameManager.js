@@ -16,6 +16,9 @@ class GameManager {
         this.localPlayerId = 'player1'; // Assuming a local player for now
         this.isBulkOperationInProgress = false; // To lock actions during 'Discard All'
         this.deathText = null;
+        this.turn = 0;
+        this.turnCounterText = null;
+        this.isTurnEnding = false;
     }
     
     /**
@@ -24,6 +27,14 @@ class GameManager {
     initialize() {
         // Expose the GameManager to the scene immediately so other managers can access it.
         this.scene.gameManager = this;
+
+        // Listen for the event that signals the end of the discard-all animation.
+        this.scene.events.on('bulkDiscardComplete', () => {
+            if (this.isTurnEnding) {
+                this.isTurnEnding = false;
+                this.startTurn();
+            }
+        });
 
         // Create managers
         this.handManager = new HandManager(this.scene, this.mainContainer);
@@ -42,6 +53,15 @@ class GameManager {
         const statsUI = new PlayerStatsUI(this.scene, this.mainContainer, 30, 30);
         statsUI.update(player);
         this.playerStatsUIs.set(this.localPlayerId, statsUI);
+
+        // --- Add Turn Counter ---
+        const { width } = this.scene.game.config;
+        this.turnCounterText = this.scene.add.text(width / 2, 40, `Turn: ${this.turn}`, {
+            font: 'bold 32px Arial',
+            fill: '#000000',
+            align: 'center'
+        }).setOrigin(0.5);
+        this.mainContainer.add(this.turnCounterText);
 
         // --- Add Debug Buttons ---
         this.createDebugButtons();
@@ -74,8 +94,21 @@ class GameManager {
         this.pileManager.createUI();
         this.gridManager.initialize();
 
-        // Draw the initial hand with animation
+        // Start the first turn.
+        this.startTurn();
+    }
+
+    /**
+     * Starts a new turn for the player.
+     */
+    startTurn() {
+        this.turn++;
+        console.log(`Starting Turn ${this.turn}`);
+        this.turnCounterText.setText(`Turn: ${this.turn}`);
+        // At the start of the turn, draw 5 cards.
         this.drawCard(5);
+        // Make sure the End Turn button is enabled.
+        this.handManager.updateEndTurnButton(true);
     }
     
     /**
@@ -132,6 +165,19 @@ class GameManager {
     }
 
     /**
+     * Initiates the end-of-turn sequence.
+     */
+    endTurn() {
+        // Don't allow ending the turn if a bulk operation is already happening.
+        if (this.isBulkOperationInProgress) return;
+
+        console.log(`Ending Turn ${this.turn}`);
+        this.isTurnEnding = true;
+        this.handManager.updateEndTurnButton(false); // Disable button immediately.
+        this.discardAllCards();
+    }
+
+    /**
      * Queues all cards in the hand to be discarded.
      */
     discardAllCards() {
@@ -152,6 +198,11 @@ class GameManager {
             cardsToDiscard.forEach(cardData => {
                 this.playManager.discardCard(cardData.instanceId);
             });
+        } else if (this.isTurnEnding) {
+            // If hand is empty but we are ending the turn, we still need to trigger the next turn.
+            // We can do this by directly calling the startTurn sequence.
+            this.isTurnEnding = false;
+            this.startTurn();
         }
     }
 
