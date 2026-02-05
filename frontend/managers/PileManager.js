@@ -52,10 +52,40 @@ class PileManager {
      * Transfer all cards from discard pile back to deck
      */
     transferDiscardToDeck() {
-        this.deck = [...this.discardPile].reverse(); // Reverse to maintain order
+        const cardsToTransferCount = this.discardPile.length;
+        if (cardsToTransferCount === 0) return;
+
+        // The data model is updated instantly, but the UI will be animated.
+        this.deck = [...this.discardPile].reverse();
         this.discardPile = [];
-        this.updateDeckDisplay();
-        this.updateDiscardDisplay();
+
+        // Create a temporary object to tween its value.
+        let counter = { value: cardsToTransferCount };
+
+        // Create a tween to animate the count from discard to deck.
+        this.scene.tweens.add({
+            targets: counter,
+            value: 0,
+            duration: 1000, // A fast "whoosh" effect
+            ease: 'Power1',
+            onUpdate: () => {
+                // On each frame of the tween, update the text displays.
+                const currentDiscardCount = Math.floor(counter.value);
+                const currentDeckCount = this.deck.length - currentDiscardCount;
+
+                if (this.discardCountText) {
+                    this.discardCountText.setText(currentDiscardCount);
+                }
+                if (this.deckCountText) {
+                    this.deckCountText.setText(currentDeckCount);
+                }
+            },
+            onComplete: () => {
+                // After the animation, ensure the final counts are perfectly accurate.
+                this.updateDeckDisplay();
+                this.updateDiscardDisplay();
+            }
+        });
     }
     
     /**
