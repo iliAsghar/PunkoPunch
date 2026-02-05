@@ -71,11 +71,13 @@ class PlayManager {
 
         // When the entire timeline is finished, update the game state.
         timeline.on('complete', () => {
-            // 1. Remove card from hand data
-            this.handManager.removeCard(cardIndex);
-            // 2. Add card to discard pile
+            // 1. Destroy the card's container after the animation is done.
+            cardContainer.destroy();
+            // 2. Animate the hand closing the gap.
+            this.handManager.animateHandAfterPlay(cardIndex);
+            // 3. Add card to discard pile
             this.pileManager.discardCard(cardData);
-            // 3. Re-enable hand interactions
+            // 4. Re-enable hand interactions.
             this.handManager.getContainer().setInteractive();
         });
 
