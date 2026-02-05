@@ -317,23 +317,6 @@ class HandManager {
     }
 
     /**
-     * Populates the hand with an initial set of cards and displays them without animation.
-     * @param {string[]} cardIds An array of card IDs to add to the hand.
-     */
-    drawInitialHand(cardIds) {
-        cardIds.forEach(cardId => {
-            this.drawnCards.push({
-                instanceId: this.nextCardInstanceId++,
-                id: cardId,
-                isFlipped: false,
-                selected: false
-            });
-        });
-        // Use the synchronous display method to render the full hand correctly.
-        this.display();
-    }
-
-    /**
      * Animates drawing a card from the deck pile into the hand.
      * @param {string} cardId The ID of the card being drawn.
      */

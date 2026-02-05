@@ -74,7 +74,10 @@ class GameManager {
         this.pileManager.createUI();
         this.gridManager.initialize();
 
-        this.drawInitialHand(5);
+        // Draw the initial hand with animation
+        for (let i = 0; i < 5; i++) {
+            this.drawCard();
+        }
     }
     
     /**
@@ -89,20 +92,6 @@ class GameManager {
         if (this.pileManager.getDeck().length > 0) {
             this.handManager.drawCardWithAnimation();
         }
-    }
-
-    /**
-     * Draws the initial hand without animation to prevent layout issues.
-     * @param {number} handSize The number of cards to draw.
-     */
-    drawInitialHand(handSize) {
-        const initialCards = [];
-        for (let i = 0; i < handSize; i++) {
-            const card = this.pileManager.drawCard();
-            if (card) initialCards.push(card.id);
-        }
-        // Add all cards to the data model first, then display them all at once.
-        this.handManager.drawInitialHand(initialCards);
     }
     
     /**
