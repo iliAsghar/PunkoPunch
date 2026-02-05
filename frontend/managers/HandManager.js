@@ -442,8 +442,7 @@ class HandManager {
         this.cardObjects.forEach((cardObj, index) => {
             const newProps = this.calculateCardTransform(index, cardCount);
 
-            // Update the card's internal position and its onClick callback index
-            cardObj.setPosition(newProps.x, newProps.y);
+            // Update the card's onClick callback index to match its new position in the array
             cardObj.onClick = () => this.toggleSelected(index);
 
             this.scene.tweens.add({
