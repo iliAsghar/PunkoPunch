@@ -371,11 +371,8 @@ class PileManager {
                 // Create card at (0,0) and add it to the container first.
                 // Then, set its position relative to the container.
                 // This avoids confusion with world vs. local coordinates.
-                const card = new Card(this.scene, 0, 0, cardData.id, {
-                    width: cardPreviewWidth,
-                    height: cardPreviewHeight,
-                    fontSize: 20,
-                    interactive: true, // Allow right-click to view
+                const card = new HandCard(this.scene, 0, 0, cardData.id, {
+                    width: cardPreviewWidth, height: cardPreviewHeight, fontSize: 20,
                     hoverZoom: 1.05,
                     hoverMoveDistance: 0
                 });

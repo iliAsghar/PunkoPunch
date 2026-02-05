@@ -347,14 +347,8 @@ class HandManager {
             const { x, y, rotation } = this.calculateCardTransform(index, cardCount);
 
             // Create card using Card component
-            const cardObj = new Card(this.scene, x, y, card.id, {
-                width: this.cardWidth,
-                height: this.cardHeight,
-                fontSize: 28,
+            const cardObj = new HandCard(this.scene, x, y, card.id, {
                 rotation: rotation,
-                interactive: true,
-                hoverMoveDistance: 30,  // Move up on hover
-                hoverZoom: 1.1,         // Zoom on hover
                 isFlipped: card.isFlipped,
                 isSelected: card.selected, // Pass the selected state to the card
                 onClick: () => {
@@ -418,10 +412,8 @@ class HandManager {
         const startPos = pileManager.getDeckPosition();
 
         // Create a temporary card for the animation.
-        const tempCard = new Card(this.scene, startPos.x, startPos.y, cardId, {
-            width: this.cardWidth,
-            height: this.cardHeight,
-            interactive: false,
+        const tempCard = new HandCard(this.scene, startPos.x, startPos.y, cardId, {
+            interactive: false
         });
         
         // Add it to the main container so it's on top of the hand during animation.
@@ -465,13 +457,9 @@ class HandManager {
                 this.drawnCards.push(newCardData);
 
                 // Create the final, interactive card in the hand.
-                const finalCard = new Card(this.scene, finalProps.x, finalProps.y, cardId, {
-                    width: this.cardWidth,
-                    height: this.cardHeight,
+                const finalCard = new HandCard(this.scene, finalProps.x, finalProps.y, cardId, {
                     rotation: finalProps.rotation,
-                    interactive: true,
-                    hoverMoveDistance: 30,
-                    hoverZoom: 1.1,
+                    isFlipped: false, // Ensure it's face up
                     onClick: () => this.toggleSelected(this.drawnCards.length - 1)
                 });
 

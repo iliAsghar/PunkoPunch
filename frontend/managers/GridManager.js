@@ -82,18 +82,8 @@ class GridManager {
             const y = startY + row * (this.cardSize + this.spacing) + this.cardSize / 2;
 
             // Create a new Card instance for the grid
-            const cardObj = new Card(this.scene, x, y, cardData.id, {
-                width: this.cardSize,
-                height: this.cardSize, // Square card
-                fontSize: this.cardSize * 0.5, // Make font size relative to card size
-                interactive: true,
+            const cardObj = new GridCard(this.scene, x, y, cardData.id, {
                 isFlipped: cardData.isFlipped, 
-                hoverMoveDistance: 0, // Only scale, don't move
-                hoverZoom: 1.1,
-                // We need to tell the Card component to use the grid dictionary
-                cardInfoSource: 'grid',
-                centerText: true, // Center the value text on the card
-                // The card will call this function when it's clicked and flipped
                 onFlip: () => {
                     this.toggleFlip(index);
                 }
