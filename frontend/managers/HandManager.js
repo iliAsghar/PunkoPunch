@@ -488,10 +488,12 @@ class HandManager {
         const totalWidth = (cardCount - 1) * currentSpacing;
         const startX = (width - totalWidth) / 2;
 
-        const x = startX + index * currentSpacing;
-        const distFromCenter = Math.abs(index - (cardCount - 1) / 2);
-        const y = handY - Math.cos(distFromCenter * 0.5) * this.curveStrength;
+        // This normalized value goes from approx -1 (leftmost card) to 1 (rightmost card).
         const normalizedIndex = index - (cardCount - 1) / 2;
+        const curveFactor = (cardCount > 1) ? normalizedIndex / (cardCount / 2) : 0;
+
+        const x = startX + index * currentSpacing;
+        const y = handY - Math.cos(curveFactor * (Math.PI / 2)) * this.curveStrength;
         const rotation = (normalizedIndex / cardCount) * this.maxRotation;
 
         return { x, y, rotation };
