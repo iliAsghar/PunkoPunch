@@ -147,10 +147,10 @@ class GameManager {
 
         if (selectedIndex !== -1) {
             const cardData = this.handManager.drawnCards[selectedIndex];
-            const cardObject = this.handManager.cardObjects[selectedIndex];
+            this.playManager.playCard(cardData.instanceId);
 
-            // Delegate the play logic to the PlayManager
-            this.playManager.playCard(selectedIndex, cardData, cardObject);
+            // Immediately unselect the card to prevent it from being spammed into the queue.
+            this.handManager.toggleSelected(selectedIndex);
         }
     }
 

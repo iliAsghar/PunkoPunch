@@ -11,16 +11,41 @@ class PlayManager {
         this.scene = scene;
         this.handManager = handManager;
         this.pileManager = pileManager;
+        this.playQueue = [];
+        this.isPlaying = false;
     }
 
     /**
      * Plays a card from the hand.
-     * @param {number} cardIndex The index of the card to play in the hand.
-     * @param {object} cardData The data object for the card being played.
-     * @param {Card} cardObject The Phaser Card component instance.
+     * @param {number} instanceId The unique instance ID of the card to play.
      */
-    playCard(cardIndex, cardData, cardObject) {
-        if (!cardObject) return;
+    playCard(instanceId) {
+        this.playQueue.push(instanceId);
+        this.processPlayQueue();
+    }
+
+    /**
+     * Processes the next card in the play queue if not already playing.
+     */
+    processPlayQueue() {
+        if (this.isPlaying || this.playQueue.length === 0) {
+            return;
+        }
+
+        this.isPlaying = true;
+        const instanceIdToPlay = this.playQueue.shift();
+
+        // --- Find the card in the hand at the moment of playing ---
+        // This is the crucial fix: we find the card's current index and object
+        // right before we animate it, avoiding stale data.
+        const cardIndex = this.handManager.drawnCards.findIndex(c => c.instanceId === instanceIdToPlay);
+        if (cardIndex === -1) {
+            this.isPlaying = false;
+            this.processPlayQueue(); // Try the next one
+            return;
+        }
+        const cardData = this.handManager.drawnCards[cardIndex];
+        const cardObject = this.handManager.cardObjects[cardIndex];
 
         console.log(`card ${cardData.id} was played`);
 
@@ -76,8 +101,13 @@ class PlayManager {
             this.pileManager.discardCard(cardData);
             // 4. Re-enable hand interactions.
             this.handManager.getContainer().setInteractive();
+
+            // We are no longer playing, so we can process the next item in the queue.
+            this.isPlaying = false;
+            this.processPlayQueue();
         });
 
         timeline.play();
     }
+
 }

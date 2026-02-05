@@ -23,6 +23,7 @@ class HandManager {
         this.maxRotation = 0.4; // radians (~23 degrees total spread)
 
         this.drawQueue = [];
+        this.nextCardInstanceId = 0;
         this.isDrawing = false;
 
         this.playButton = null;
@@ -34,7 +35,12 @@ class HandManager {
      */
     addCard(cardId) {
         // This now bypasses animation. Use drawCardWithAnimation for animated drawing.
-        this.drawnCards.push({ id: cardId, isFlipped: false, selected: false });
+        this.drawnCards.push({
+            instanceId: this.nextCardInstanceId++,
+            id: cardId,
+            isFlipped: false,
+            selected: false
+        });
         this.reorganizeHand();
     }
     
@@ -245,7 +251,12 @@ class HandManager {
      */
     drawInitialHand(cardIds) {
         cardIds.forEach(cardId => {
-            this.drawnCards.push({ id: cardId, isFlipped: false, selected: false });
+            this.drawnCards.push({
+                instanceId: this.nextCardInstanceId++,
+                id: cardId,
+                isFlipped: false,
+                selected: false
+            });
         });
         // Use the synchronous display method to render the full hand correctly.
         this.display();
@@ -313,8 +324,12 @@ class HandManager {
                 // Animation is done. Destroy the temporary card.
                 tempCard.destroy();
 
-                // Officially add the card data to the hand model
-                const newCardData = { id: cardId, isFlipped: false, selected: false };
+                // Officially add the card data to the hand model with a unique instance ID
+                const newCardData = {
+                    instanceId: this.nextCardInstanceId++,
+                    id: cardId,
+                    isFlipped: false,
+                    selected: false };
                 this.drawnCards.push(newCardData);
 
                 // Create the final, interactive card in the hand.
