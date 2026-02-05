@@ -76,8 +76,8 @@ class HandManager {
         }
 
         // Update the action buttons based on the new selection state.
-        this.updateActionButtonsState();
-        this.updatePlayButton();
+        this.updateSelectionButtons();
+        this.updateHandStateButtons();
     }
 
     /**
@@ -92,8 +92,8 @@ class HandManager {
         });
         
         // After clearing, always update the buttons to their disabled/default state.
-        this.updateActionButtonsState();
-        this.updatePlayButton();
+        this.updateSelectionButtons();
+        this.updateHandStateButtons();
     }
     
     /**
@@ -141,7 +141,10 @@ class HandManager {
         .setOrigin(0.5)
         .setPosition(playButtonX, playButtonY)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this.scene.gameManager?.playSelectedCard())
+        .on('pointerdown', (pointer) => {
+            if (pointer.rightButtonDown()) return;
+            this.scene.gameManager?.playSelectedCard();
+        })
         .on('pointerover', () => {
             if (this.playButton.input.enabled) {
                 this.playButton.setBackgroundColor('#218838');
@@ -164,7 +167,10 @@ class HandManager {
         .setOrigin(0.5)
         .setPosition(discardSelectedBtnX, discardBtnY)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this.scene.gameManager?.discardSelectedCard())
+        .on('pointerdown', (pointer) => {
+            if (pointer.rightButtonDown()) return;
+            this.scene.gameManager?.discardSelectedCard();
+        })
         .on('pointerover', () => {
             if (this.discardSelectedButton.input.enabled) {
                 this.discardSelectedButton.setBackgroundColor('#c82333');
@@ -187,7 +193,10 @@ class HandManager {
         .setOrigin(0.5)
         .setPosition(discardAllBtnX, discardAllBtnY)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this.scene.gameManager?.discardAllCards())
+        .on('pointerdown', (pointer) => {
+            if (pointer.rightButtonDown()) return;
+            this.scene.gameManager?.discardAllCards();
+        })
         .on('pointerover', () => {
             if (this.discardAllButton.input.enabled) {
                 this.discardAllButton.setBackgroundColor('#c82333');
@@ -208,7 +217,10 @@ class HandManager {
         .setOrigin(0.5)
         .setPosition(endTurnButtonX, endTurnButtonY)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this.scene.gameManager?.endTurn())
+        .on('pointerdown', (pointer) => {
+            if (pointer.rightButtonDown()) return;
+            this.scene.gameManager?.endTurn();
+        })
         .on('pointerover', () => {
             if (this.endTurnButton.input.enabled) {
                 this.endTurnButton.setBackgroundColor('#138496');
@@ -220,7 +232,9 @@ class HandManager {
 
 
         this.cardsContainer.add([this.playButton, this.discardSelectedButton, this.discardAllButton, this.endTurnButton]);
-        this.updateActionButtonsState(); // Set initial state
+        this.updateActionButtonsState(); // Make buttons visible
+        this.updateSelectionButtons();   // Set initial selection-based button state
+        this.updateHandStateButtons();   // Set initial hand-based button state
     }
 
     /**
@@ -235,12 +249,11 @@ class HandManager {
     }
 
     /**
-     * Updates the visibility and state of the play button.
+     * Updates buttons that depend on a card being selected.
      */
-    updatePlayButton() {
+    updateSelectionButtons() {
         const selectedIndex = this.drawnCards.findIndex(card => card.selected);
-        const handHasCards = this.drawnCards.length > 0;
-
+        
         if (selectedIndex !== -1) {
             // Enable the button
             this.playButton.setAlpha(1.0);
@@ -260,6 +273,13 @@ class HandManager {
             this.discardSelectedButton.input.enabled = false;
             this.discardSelectedButton.setBackgroundColor('#6c757d');
         }
+    }
+
+    /**
+     * Updates buttons that depend on the state of the hand itself (e.g., if it has cards).
+     */
+    updateHandStateButtons() {
+        const handHasCards = this.drawnCards.length > 0;
 
         // Update "Discard All" button state based on whether there are cards in hand
         if (handHasCards) {
@@ -291,8 +311,8 @@ class HandManager {
      * Display/re-render the hand with curved layout and rotation
      */
     display() {
-        this.updateActionButtonsState();
-        this.updatePlayButton();
+        this.updateSelectionButtons();
+        this.updateHandStateButtons();
 
         // Destroy only the old card objects, leaving the playButton intact.
         this.cardObjects.forEach(cardObj => {
@@ -360,6 +380,9 @@ class HandManager {
 
         // Now, animate the remaining cards to their new, correct positions.
         this.reorganizeHand();
+
+        // After reorganizing, update the button states.
+        this.updateHandStateButtons();
     }
 
     /**
@@ -465,6 +488,9 @@ class HandManager {
                 // We are no longer drawing, so we can process the next item in the queue.
                 this.isDrawing = false;
                 this.processDrawQueue();
+
+                // A card was added, so update the hand state buttons.
+                this.updateHandStateButtons();
             }
         });
     }

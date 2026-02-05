@@ -141,7 +141,10 @@ class PileManager {
         )
             .setStrokeStyle(2, 0x000000)
             .setInteractive()
-            .on('pointerdown', () => this.showDeckModal())
+            .on('pointerdown', (pointer) => {
+                if (pointer.rightButtonDown()) return;
+                this.showDeckModal();
+            })
             .on('pointerover', () => {
                 this.scene.tweens.add({ targets: this.deckPileContainer, scale: 1.1, duration: 100, ease: 'Power2' });
             })
@@ -163,7 +166,10 @@ class PileManager {
         const drawBtnY = deckPileY - this.pileHeight / 2 - 40;
         const drawBtn = this.scene.add.rectangle(drawBtnX, drawBtnY, 80, 35, 0x000000)
             .setInteractive()
-            .on('pointerdown', () => this.scene.gameManager?.drawCard(1))
+            .on('pointerdown', (pointer) => {
+                if (pointer.rightButtonDown()) return;
+                this.scene.gameManager?.drawCard(1);
+            })
             .on('pointerover', function() { this.setFillStyle(0x333333); })
             .on('pointerout', function() { this.setFillStyle(0x000000); });
         
@@ -177,7 +183,10 @@ class PileManager {
         const draw5BtnY = drawBtnY - 45; // Position it 45px above the other button
         const draw5Btn = this.scene.add.rectangle(draw5BtnX, draw5BtnY, 80, 35, 0x007bff) // A nice blue color
             .setInteractive()
-            .on('pointerdown', () => this.scene.gameManager?.drawCard(5))
+            .on('pointerdown', (pointer) => {
+                if (pointer.rightButtonDown()) return;
+                this.scene.gameManager?.drawCard(5);
+            })
             .on('pointerover', function() { this.setFillStyle(0x0056b3); })
             .on('pointerout', function() { this.setFillStyle(0x007bff); });
 
@@ -199,7 +208,10 @@ class PileManager {
         )
             .setStrokeStyle(2, 0x000000)
             .setInteractive()
-            .on('pointerdown', () => this.showDiscardModal())
+            .on('pointerdown', (pointer) => {
+                if (pointer.rightButtonDown()) return;
+                this.showDiscardModal();
+            })
             .on('pointerover', () => {
                 this.scene.tweens.add({ targets: this.discardPileContainer, scale: 1.1, duration: 100, ease: 'Power2' });
             })

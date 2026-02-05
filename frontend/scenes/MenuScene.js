@@ -46,7 +46,8 @@ class MenuScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
 
-        startButton.on('pointerdown', () => {
+        startButton.on('pointerdown', (pointer) => {
+            if (pointer.rightButtonDown()) return;
             const maxPlayers = parseInt(inputElement.value, 10) || 2; // Fallback to 2 if input is invalid
             this.scene.start('GameScene', { maxPlayersPerTeam: maxPlayers });
         });

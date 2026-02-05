@@ -266,7 +266,10 @@ class GameManager {
             padding: { x: 10, y: 5 }
         })
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', onClick)
+        .on('pointerdown', (pointer) => {
+            if (pointer.rightButtonDown()) return;
+            onClick();
+        })
         .on('pointerover', () => btnText.setBackgroundColor('#bbb'))
         .on('pointerout', () => btnText.setBackgroundColor('#ddd'));
 
