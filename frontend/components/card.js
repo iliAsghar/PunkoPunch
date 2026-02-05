@@ -80,7 +80,12 @@ class Card {
                 };
 
                 // Only animate the Y position if the card is supposed to move on hover.
-                if (this.hoverMoveDistance !== 0) {
+                // We check for the internal offset container, which is the new way of handling hover movement.
+                if (this.offsetContainer) {
+                    // If hovered, the card's visual elements should be in their "up" state.
+                    const targetY = this.isHovered ? -this.hoverMoveDistance : 0;
+                    finalTweenConfig.y = targetY; // This targets the offsetContainer's y position
+                } else if (this.hoverMoveDistance !== 0) { // Legacy check for non-offset cards
                     finalTweenConfig.y = this.isHovered ? this.y - this.hoverMoveDistance : this.y;
                 }
 
@@ -127,13 +132,18 @@ class Card {
         this.hoverInDuration = options.hoverInDuration || 40; // Duration for hover-in tween
         this.hoverOutDuration = options.hoverOutDuration || 300; // Duration for hover-out tween
         
-        // Create container for card + text
+        // The main container holds everything and is used for positioning and interactivity.
         this.container = this.scene.add.container(x, y);
+
+        // The offset container holds the visual elements. It will be moved up/down on hover.
+        // We only create it if a hover move distance is specified.
+        this.offsetContainer = this.hoverMoveDistance !== 0 ? this.scene.add.container(0, 0) : null;
+        if (this.offsetContainer) this.container.add(this.offsetContainer);
         
         // Card background
         this.cardRect = this.scene.add.rectangle(
             0, 0, 
-            this.width, this.height, 
+            this.width, this.height,
             0xffffff
         );
         if (this.isSelected) {
@@ -161,10 +171,12 @@ class Card {
             this.valueText.setPosition(-this.width / 2 + 10, -this.height / 2 + 10); // Position in top-left corner
         }
         
-        // Add elements to container
-        this.container.add([this.cardRect, this.valueText]);
+        // Add visual elements to the correct container (either the main one or the offset one).
+        const parentForVisuals = this.offsetContainer || this.container;
+        parentForVisuals.add([this.cardRect, this.valueText]);
 
-        // Create the 'flipped' text but keep it hidden initially
+
+        // Create the 'flipped' text and add it to the same container as other visuals.
         this.flippedText = this.scene.add.text(
             0, 0, 'XX', {
                 font: `bold ${this.height * 0.3}px Arial`, // Make it big
@@ -172,7 +184,7 @@ class Card {
                 align: 'center'
             }
         ).setOrigin(0.5);
-        this.container.add(this.flippedText);
+        parentForVisuals.add(this.flippedText);
 
         // Set initial visibility based on the isFlipped state
         this.valueText.setVisible(!this.isFlipped);
@@ -239,14 +251,17 @@ class Card {
         }
 
         // Stop any existing tweens on this card to prevent conflicts
-        this.scene.tweens.killTweensOf(this.container);
+        this.scene.tweens.killTweensOf([this.container, this.offsetContainer]);
 
         const tweenConfig = {
-            targets: [this.container],
             duration: this.hoverInDuration,
             ease: 'Power2.easeOut'
         };
         
+        // Determine the target for the tween.
+        // We scale the main container but move the offset container.
+        const scaleTarget = this.container;
+        const moveTarget = this.offsetContainer;
         // Add scale if zoom is specified
         if (this.hoverZoom !== 1) {
             tweenConfig.scale = this.hoverZoom;
@@ -254,11 +269,16 @@ class Card {
         
         // Add y movement if move distance is specified
         if (this.hoverMoveDistance !== 0) {
-            tweenConfig.y = this.y - this.hoverMoveDistance;
+            this.scene.tweens.add({ ...tweenConfig, targets: moveTarget, y: -this.hoverMoveDistance });
         }
         
-        this.scene.tweens.add(tweenConfig);
-        
+        // The scale tween should always run on the main container.
+        // If there's no move tween, we still need to run the scale tween.
+        if (this.hoverZoom !== 1) {
+            this.scene.tweens.add({ ...tweenConfig, targets: scaleTarget });
+        }
+
+
         // Add glow effect if enabled
         if (this.hoverGlow) {
             this.cardRect.setStrokeStyle(3, 0xffff00);
@@ -277,21 +297,27 @@ class Card {
         }
 
         // Stop any existing tweens on this card to prevent conflicts
-        this.scene.tweens.killTweensOf(this.container);
+        this.scene.tweens.killTweensOf([this.container, this.offsetContainer]);
 
         const tweenConfig = {
-            targets: [this.container],
             duration: this.hoverOutDuration,
             ease: 'Sine.easeOut',
             scale: 1
         };
         
-        // Only tween the y position back if it was moved in the first place
-        if (this.hoverMoveDistance !== 0) {
-            tweenConfig.y = this.y;
-        }
+        // We always scale the main container back to 1.
+        this.scene.tweens.add({
+            ...tweenConfig,
+            targets: this.container
+        });
 
-        this.scene.tweens.add(tweenConfig);
+        // Only tween the y position back if it was moved in the first place
+        if (this.offsetContainer) {
+            this.scene.tweens.add({
+                targets: this.offsetContainer,
+                y: 0, // Return to original offset
+                duration: this.hoverOutDuration, ease: 'Sine.easeOut' });
+        }
         
         // Remove glow effect
         if (!this.isSelected) {
