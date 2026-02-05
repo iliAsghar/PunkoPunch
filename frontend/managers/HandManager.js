@@ -269,18 +269,10 @@ class HandManager {
         // Center the hand horizontally
         const totalWidth = (cardCount - 1) * currentSpacing;
         const startX = (width - totalWidth) / 2;
-        
+
         this.drawnCards.forEach((card, index) => {
-            const x = startX + index * currentSpacing;
-            
-            // Create curve effect - cards higher in the middle
-            const distFromCenter = Math.abs(index - (cardCount - 1) / 2);
-            const y = handY - Math.cos(distFromCenter * 0.5) * this.curveStrength;
-            
-            // Calculate rotation - cards fan out from center
-            const normalizedIndex = index - (cardCount - 1) / 2;
-            const rotation = (normalizedIndex / cardCount) * this.maxRotation;
-            
+            const { x, y, rotation } = this.calculateCardTransform(index, cardCount);
+
             // Create card using Card component
             const cardObj = new Card(this.scene, x, y, card.id, {
                 width: this.cardWidth,
@@ -472,7 +464,7 @@ class HandManager {
 
         // This normalized value goes from approx -1 (leftmost card) to 1 (rightmost card).
         const normalizedIndex = index - (cardCount - 1) / 2;
-        const curveFactor = (cardCount > 1) ? normalizedIndex / (cardCount / 2) : 0;
+        const curveFactor = (cardCount > 1) ? normalizedIndex / ((cardCount - 1) / 2) : 0;
 
         const x = startX + index * currentSpacing;
         const y = handY - Math.cos(curveFactor * (Math.PI / 2)) * this.curveStrength;

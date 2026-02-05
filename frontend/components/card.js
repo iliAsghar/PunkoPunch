@@ -253,29 +253,20 @@ class Card {
         // Stop any existing tweens on this card to prevent conflicts
         this.scene.tweens.killTweensOf([this.container, this.offsetContainer]);
 
-        const tweenConfig = {
-            duration: this.hoverInDuration,
-            ease: 'Power2.easeOut'
-        };
-        
         // Determine the target for the tween.
         // We scale the main container but move the offset container.
         const scaleTarget = this.container;
         const moveTarget = this.offsetContainer;
-        // Add scale if zoom is specified
-        if (this.hoverZoom !== 1) {
-            tweenConfig.scale = this.hoverZoom;
-        }
         
         // Add y movement if move distance is specified
         if (this.hoverMoveDistance !== 0) {
-            this.scene.tweens.add({ ...tweenConfig, targets: moveTarget, y: -this.hoverMoveDistance });
+            this.scene.tweens.add({ targets: moveTarget, y: -this.hoverMoveDistance, duration: this.hoverInDuration, ease: 'Power2.easeOut' });
         }
         
         // The scale tween should always run on the main container.
         // If there's no move tween, we still need to run the scale tween.
         if (this.hoverZoom !== 1) {
-            this.scene.tweens.add({ ...tweenConfig, targets: scaleTarget });
+            this.scene.tweens.add({ targets: scaleTarget, scale: this.hoverZoom, duration: this.hoverInDuration, ease: 'Power2.easeOut' });
         }
 
 
