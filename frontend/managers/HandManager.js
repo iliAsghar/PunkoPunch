@@ -219,7 +219,7 @@ class HandManager {
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', (pointer) => {
             if (pointer.rightButtonDown()) return;
-            this.scene.gameManager?.endTurn();
+            this.scene.gameManager?.turnManager.endTurn();
         })
         .on('pointerover', () => {
             if (this.endTurnButton.input.enabled) {
@@ -491,12 +491,20 @@ class HandManager {
                     cardObj.onClick = () => this.toggleSelected(index);
                 });
 
-                // We are no longer drawing, so we can process the next item in the queue.
-                this.isDrawing = false;
-                this.processDrawQueue();
-
                 // A card was added, so update the hand state buttons.
                 this.updateHandStateButtons();
+
+                // We are no longer drawing this specific card.
+                // This must be set before emitting 'drawComplete' so the GameManager can resume the timer.
+                this.isDrawing = false;
+
+                // If the draw queue is now empty, it means this was the last card in the sequence.
+                // We can now resume the game timer.
+                if (this.drawQueue.length === 0) {
+                    this.scene.events.emit('drawComplete');
+                }
+
+                this.processDrawQueue(); // Process the next item in the queue, if any.
             }
         });
     }

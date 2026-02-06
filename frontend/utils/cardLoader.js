@@ -22,6 +22,7 @@
         'frontend/managers/GridManager.js',
         'frontend/managers/HandManager.js',
         'frontend/managers/PileManager.js',
+        'frontend/managers/TurnManager.js',
         'frontend/managers/PlayManager.js',
         'frontend/managers/GameManager.js',
         'frontend/scenes/MenuScene.js',
