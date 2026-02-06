@@ -29,7 +29,7 @@ class TurnManager {
         this.gameManager.mainContainer.add(this.turnCounterText);
 
         // --- Add Turn Timer ---
-        this.turnTimerText = this.scene.add.text(width - 100, 40, `Time: ${this.turnDuration}`, {
+        this.turnTimerText = this.scene.add.text(width - 100, 40, `Time: ${this.turnDuration}s`, {
             font: 'bold 32px Arial',
             fill: '#000000',
             align: 'center'
@@ -47,7 +47,7 @@ class TurnManager {
         }
 
         // Reset timer display and start a new one.
-        this.turnTimerText.setText(`Time: ${this.turnDuration}`);
+        this.turnTimerText.setText(`Time: ${this.turnDuration}s`);
         this.turnTimer = this.scene.time.addEvent({
             delay: 1000,
             callback: this.tick,
@@ -95,10 +95,9 @@ class TurnManager {
         // The timer's repeat count is the number of remaining repeats.
         // It counts down from (duration - 1) to 0.
         const remainingTime = this.turnTimer.getRepeatCount() + 1;
-        this.turnTimerText.setText(`Time: ${remainingTime}`);
+        this.turnTimerText.setText(`Time: ${remainingTime - 1}s`);
 
         if (remainingTime <= 1) {
-            console.log("Time's up! Automatically ending turn.");
             this.endTurn();
         }
     }
@@ -127,6 +126,6 @@ class TurnManager {
             this.turnTimer.destroy();
             this.turnTimer = null;
         }
-        this.turnTimerText.setText('Time: 0');
+        this.turnTimerText.setText('Time: 0s');
     }
 }
