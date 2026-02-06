@@ -8,7 +8,7 @@ class TurnManager {
 
         this.turn = 0;
         this.turnCounterText = null;
-        this.turnDuration = 15; // seconds
+        this.turnDuration = 100; // seconds
         this.turnTimer = null; // Phaser.Time.TimerEvent
         this.turnTimerText = null;
         this.isTurnEnding = false;
