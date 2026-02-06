@@ -211,7 +211,7 @@ class PileManager {
         this.discardCountText = this.scene.add.text(
             0, 0, 
             this.discardPile.length.toString(),
-            { font: 'bold 24px Arial', fill: '#000000' }
+            { font: 'bold 30px Arial', fill: '#000000' }
         ).setOrigin(0.5);
 
         this.discardPileContainer.add([discardRect, this.discardCountText]);
