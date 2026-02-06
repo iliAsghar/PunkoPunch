@@ -28,7 +28,7 @@ class HandCard extends BaseCard {
      */
     _createCardContent() {
         // Mana cost text (top-left)
-        if (this.cardInfo.cost && this.cardInfo.cost.mana) {
+        if (this.cardInfo.cost && this.cardInfo.cost.mana !== undefined) {
             const manaCostText = this.scene.add.text(
                 -this.width / 2 + 10,
                 -this.height / 2 + 10,
