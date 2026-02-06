@@ -14,6 +14,14 @@ class GameScene extends Phaser.Scene {
         this.gameSettings = data;
     }
     
+    /**
+     * Preload assets and scripts.
+     */
+    preload() {
+        // Load the script for the TeamMemberUI component
+        this.load.script('TeamMemberUI', 'frontend/ui/TeamMemberUI.js');
+    }
+
     create() {
         // Create a main container to act as our "virtual canvas"
         this.gameContainer = this.add.container(0, 0);
