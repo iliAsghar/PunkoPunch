@@ -91,6 +91,17 @@ class BaseCard {
         // A 'pointerdown' event on a GameObject provides (pointer, localX, localY, event)
         // We need both the pointer and the DOM event.
         this.container.on('pointerdown', (pointer, localX, localY, event) => {
+            // Prevent any interaction if a card is currently being drawn or played/discarded.
+            const gameManager = this.scene.gameManager;
+            if (gameManager) {
+                const isDrawing = gameManager.handManager?.isDrawing;
+                const isPlaying = gameManager.playManager?.isPlaying;
+                if (isDrawing || isPlaying) {
+                    return; // Abort click processing
+                }
+            }
+
+
             if (pointer.rightButtonDown()) {
                 if (this.allowViewscreen) {
                     this.showViewscreen();
