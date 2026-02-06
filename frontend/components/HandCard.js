@@ -43,15 +43,15 @@ class HandCard extends BaseCard {
             this.faceContentContainer.add(manaCostText);
         }
 
-        // Card value text (top-right)
-        const valueText = this.scene.add.text(
-            this.width / 2 - 10,
-            -this.height / 2 + 10,
-            this.cardInfo.value.toString(),
-            { font: `bold ${this.fontSize}px Arial`, fill: '#000000' }
-        ).setOrigin(1, 0); // Origin should be top-right
+        // // Card value text (top-right)
+        // const valueText = this.scene.add.text(
+        //     this.width / 2 - 10,
+        //     -this.height / 2 + 10,
+        //     this.cardInfo.value.toString(),
+        //     { font: `bold ${this.fontSize}px Arial`, fill: '#000000' }
+        // ).setOrigin(1, 0); // Origin should be top-right
 
-        this.faceContentContainer.add(valueText);
+        // this.faceContentContainer.add(valueText);
 
     }
 
