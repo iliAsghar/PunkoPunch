@@ -48,6 +48,15 @@ class PlayerStatsUI {
     }
 
     /**
+     * Directly updates the mana text. Used for animations.
+     * @param {number} currentMana The mana value to display.
+     * @param {number} maxMana The max mana value to display.
+     */
+    updateManaText(currentMana, maxMana) {
+        this.manaText.setText(`Mana: ${Math.floor(currentMana)} / ${maxMana}`);
+    }
+
+    /**
      * Destroys the UI elements.
      */
     destroy() {

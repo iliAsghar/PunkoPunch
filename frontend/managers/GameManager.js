@@ -86,6 +86,11 @@ class GameManager {
         this.turn++;
         console.log(`Starting Turn ${this.turn}`);
         this.turnCounterText.setText(`Turn: ${this.turn}`);
+
+        // Refill mana for the local player at the start of the turn.
+        const player = this.players.get(this.localPlayerId);
+        this.animateManaRefill(this.localPlayerId);
+
         // At the start of the turn, draw 5 cards.
         this.drawCard(5);
         // Make sure the End Turn button is enabled.
@@ -114,11 +119,24 @@ class GameManager {
         const selectedIndex = this.handManager.drawnCards.findIndex(card => card.selected);
 
         if (selectedIndex !== -1) {
+            const player = this.players.get(this.localPlayerId);
             const cardData = this.handManager.drawnCards[selectedIndex];
+            const cardInfo = getCardInfo(cardData.id);
+            const manaCost = cardInfo.cost?.mana || 0;
 
-            // Clear the selection *before* queueing the card to be played.
-            this.handManager.clearSelection();
-            this.playManager.playCard(cardData.instanceId);
+            // Check if the player can afford the card.
+            if (player.mana >= manaCost) {
+                // Spend the mana.
+                this.applyManaCost(this.localPlayerId, manaCost);
+
+                // Clear the selection *before* queueing the card to be played.
+                this.handManager.clearSelection();
+                this.playManager.playCard(cardData.instanceId);
+            } else {
+                // Not enough mana. For now, we just log it.
+                // The button will also be disabled, providing visual feedback.
+                console.log(`Not enough mana to play ${cardInfo.name}. Needs ${manaCost}, has ${player.mana}.`);
+            }
         }
     }
 
@@ -311,6 +329,47 @@ class GameManager {
 
         player.restoreMana(amount);
         this.playerStatsUIs.get(playerId)?.update(player);
+    }
+
+    /**
+     * Animates the mana gain for a player at the start of the turn.
+     * @param {string} playerId The ID of the player whose mana should be refilled.
+     */
+    animateManaRefill(playerId) {
+        const player = this.players.get(playerId);
+        const statsUI = this.playerStatsUIs.get(playerId);
+        if (!player || !statsUI) return;
+
+        const startMana = player.mana;
+        const endMana = player.maxMana;
+
+        // If mana is already full, just update the model and UI and exit.
+        if (startMana >= endMana) {
+            player.restoreMana(endMana); // This just clamps it to max.
+            statsUI.update(player);
+            return;
+        }
+
+        // Update the data model instantly.
+        player.restoreMana(endMana);
+
+        // Create a temporary object to tween its value for the animation.
+        let counter = { value: startMana };
+
+        this.scene.tweens.add({
+            targets: counter,
+            value: endMana,
+            duration: 600, // Animation duration in ms
+            ease: 'Power1',
+            onUpdate: () => {
+                // On each frame of the tween, update the mana text display.
+                statsUI.updateManaText(counter.value, player.maxMana);
+            },
+            onComplete: () => {
+                // After the animation, ensure the final count is perfectly accurate.
+                statsUI.update(player);
+            }
+        });
     }
 
     /**

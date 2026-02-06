@@ -252,13 +252,20 @@ class HandManager {
      * Updates buttons that depend on a card being selected.
      */
     updateSelectionButtons() {
+        const gameManager = this.scene.gameManager;
+        const player = gameManager.players.get(gameManager.localPlayerId);
         const selectedIndex = this.drawnCards.findIndex(card => card.selected);
         
         if (selectedIndex !== -1) {
-            // Enable the button
-            this.playButton.setAlpha(1.0);
-            this.playButton.input.enabled = true;
-            this.playButton.setBackgroundColor('#28a745');
+            const cardData = this.drawnCards[selectedIndex];
+            const cardInfo = getCardInfo(cardData.id);
+            const manaCost = cardInfo.cost?.mana || 0;
+            const canAfford = player.mana >= manaCost;
+
+            // Enable the button only if the player can afford the card.
+            this.playButton.setAlpha(canAfford ? 1.0 : 0.65);
+            this.playButton.input.enabled = canAfford;
+            this.playButton.setBackgroundColor(canAfford ? '#28a745' : '#6c757d');
 
             this.discardSelectedButton.setAlpha(1.0);
             this.discardSelectedButton.input.enabled = true;
