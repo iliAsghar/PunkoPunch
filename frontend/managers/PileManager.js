@@ -27,6 +27,7 @@ class PileManager {
      */
     initialize(deckCards) {
         this.deck = [...deckCards];
+        this._shuffle(this.deck);
         this.discardPile = [];
     }
     
@@ -50,7 +51,8 @@ class PileManager {
         if (cardsToTransferCount === 0) return;
 
         // The data model is updated instantly, but the UI will be animated.
-        this.deck = [...this.discardPile].reverse();
+        this.deck = [...this.discardPile];
+        this._shuffle(this.deck);
         this.discardPile = [];
 
         // Create a temporary object to tween its value.
@@ -356,7 +358,22 @@ class PileManager {
             let currentX = startXOffset;
             let currentY = 10;
 
-            pile.forEach((cardData, index) => {
+            // Create a sorted copy of the pile for display purposes.
+            // This prevents the player from knowing the actual draw order from the deck
+            // and provides a consistent, organized view of the discard pile.
+            const sortedPile = [...pile].sort((a, b) => {
+                const cardInfoA = getCardInfo(a.id);
+                const cardInfoB = getCardInfo(b.id);
+                const manaA = cardInfoA.cost?.mana ?? 0;
+                const manaB = cardInfoB.cost?.mana ?? 0;
+
+                if (manaA !== manaB) {
+                    return manaA - manaB; // Primary sort: by mana cost
+                }
+                return cardInfoA.name.localeCompare(cardInfoB.name); // Secondary sort: by name
+            });
+
+            sortedPile.forEach((cardData, index) => {
                 // Create card at (0,0) and add it to the container first.
                 // Then, set its position relative to the container.
                 // This avoids confusion with world vs. local coordinates.
@@ -374,7 +391,7 @@ class PileManager {
 
                 // Move to the next grid slot
                 currentX += cardPreviewWidth + cardSpacingX;
-                if ((index + 1) % cols === 0 && index < pile.length - 1) {
+                if ((index + 1) % cols === 0 && index < sortedPile.length - 1) {
                     currentX = startXOffset;
                     currentY += cardPreviewHeight + cardSpacingY;
                 }
@@ -430,5 +447,17 @@ class PileManager {
     getDiscardPilePosition() {
         if (!this.discardPileContainer) return { x: 0, y: 0 };
         return { x: this.discardPileContainer.x, y: this.discardPileContainer.y };
+    }
+
+    /**
+     * Shuffles an array in place using the Fisher-Yates algorithm.
+     * @param {Array} array The array to shuffle.
+     * @private
+     */
+    _shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
     }
 }
