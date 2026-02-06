@@ -60,6 +60,12 @@ class HandManager {
      * Toggles the selected state of a card in hand and redisplays the hand.
      */
     toggleSelected(index) {
+        // Prevent any selection changes while a bulk operation (like 'Discard All') is in progress.
+        // This stops clicks from registering while cards are animating away.
+        if (this.scene.gameManager.isBulkOperationInProgress) {
+            return;
+        }
+
         const isCurrentlySelected = this.drawnCards[index]?.selected;
 
         // Always clear any existing selection first.
