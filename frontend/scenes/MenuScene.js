@@ -29,7 +29,7 @@ class MenuScene extends Phaser.Scene {
         inputElement.type = 'number';
         inputElement.value = '2'; // Default value
         inputElement.min = '1';
-        inputElement.max = '5';
+        inputElement.max = '4';
         inputElement.style.width = '80px';
         inputElement.style.fontSize = '20px';
         inputElement.style.textAlign = 'center';
@@ -48,7 +48,7 @@ class MenuScene extends Phaser.Scene {
 
         startButton.on('pointerdown', (pointer) => {
             if (pointer.rightButtonDown()) return;
-            const maxPlayers = parseInt(inputElement.value, 10) || 2; // Fallback to 2 if input is invalid
+            const maxPlayers = Math.min(parseInt(inputElement.value, 10) || 2, 4); // Fallback to 2 if input is invalid, max of 4
             this.scene.start('GameScene', { maxPlayersPerTeam: maxPlayers });
         });
 
