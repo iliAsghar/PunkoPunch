@@ -21,8 +21,8 @@
         'frontend/components/GridCard.js',
         'frontend/managers/GridManager.js',
         'frontend/managers/HandManager.js',
-        'frontend/managers/PileManager.js',
-        'frontend/managers/TurnManager.js',
+        'frontend/managers/PileManager.js', // This file is named turnmanager.js (lowercase)
+        'frontend/managers/turnmanager.js',
         'frontend/managers/PlayManager.js',
         'frontend/managers/GameManager.js',
         'frontend/scenes/MenuScene.js',
