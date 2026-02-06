@@ -355,6 +355,12 @@ class GameManager {
         // Don't do anything if already in the death state
         if (this.deathText) return;
 
+        // Stop the turn timer.
+        this.turnManager.freezeTimerOnDeath();
+
+        // Instantly clear the player's hand.
+        this.handManager.emptyHandInstantly();
+
         // Hide game elements
         this.handManager.getContainer().setVisible(false);
         this.pileManager.uiContainer.setVisible(false);
@@ -388,5 +394,8 @@ class GameManager {
             this.deathText.destroy();
             this.deathText = null;
         }
+
+        // Give the revived player a fresh start with a new turn.
+        this.turnManager.startTurn();
     }
 }

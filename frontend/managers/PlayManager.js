@@ -165,6 +165,9 @@ class PlayManager {
                 if (this.scene.gameManager.isBulkOperationInProgress) {
                     this.scene.gameManager.isBulkOperationInProgress = false;
                     this.scene.events.emit('bulkDiscardComplete'); // Signal that the bulk operation is done.
+                } else {
+                    // If not a bulk operation, it was a single play/discard, so resume the timer.
+                    this.scene.gameManager.turnManager.resumeTimer();
                 }
             }
         });

@@ -94,10 +94,10 @@ class TurnManager {
     tick() {
         // The timer's repeat count is the number of remaining repeats.
         // It counts down from (duration - 1) to 0.
-        const remainingTime = this.turnTimer.getRepeatCount();
+        const remainingTime = this.turnTimer.getRepeatCount() + 1;
         this.turnTimerText.setText(`Time: ${remainingTime}`);
 
-        if (remainingTime <= 0) {
+        if (remainingTime <= 1) {
             console.log("Time's up! Automatically ending turn.");
             this.endTurn();
         }
@@ -117,5 +117,16 @@ class TurnManager {
         if (this.turnTimer && !this.gameManager.handManager.isDrawing && !this.gameManager.playManager.isPlaying) {
             this.turnTimer.paused = false;
         }
+    }
+
+    /**
+     * Stops the timer completely and sets the display to 0, e.g., on player death.
+     */
+    freezeTimerOnDeath() {
+        if (this.turnTimer) {
+            this.turnTimer.destroy();
+            this.turnTimer = null;
+        }
+        this.turnTimerText.setText('Time: 0');
     }
 }

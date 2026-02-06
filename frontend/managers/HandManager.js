@@ -116,6 +116,30 @@ class HandManager {
     }
 
     /**
+     * Instantly removes all cards from the hand without animation.
+     * Adds the cards to the discard pile.
+     * Used for states like player death.
+     */
+    emptyHandInstantly() {
+        const pileManager = this.scene.gameManager.pileManager;
+
+        // Destroy only the card game objects, leaving buttons intact.
+        this.drawnCards.forEach(cardData => {
+            pileManager.discardCard(cardData);
+        });
+
+        this.cardObjects.forEach(cardObj => {
+            cardObj.destroy();
+        });
+
+        // Clear the data models
+        this.drawnCards = [];
+        this.cardObjects = [];
+
+        // Update buttons to reflect the new empty-hand state
+        this.updateHandStateButtons();
+    }
+    /**
      * Creates the "Play" button, initially hidden.
      */
     createActionButtons() {
