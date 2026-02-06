@@ -14,6 +14,9 @@ class GridManager {
         this.cols = options.cols || 5; // Default to 5 columns
         this.cardSize = 70; // Square cards
         this.spacing = 10;
+
+        // To store calculated layout properties
+        this.gridBounds = { x: 0, y: 0, width: 0, height: 0 };
     }
 
     /**
@@ -74,6 +77,12 @@ class GridManager {
         const startX = (this.scene.game.config.width - gridWidth) / 2;
         const startY = (this.scene.game.config.height - gridHeight) / 2 - 40; // Shift up slightly
 
+        // Store the calculated bounds so other managers can use them for layout
+        this.gridBounds.x = startX;
+        this.gridBounds.y = startY;
+        this.gridBounds.width = gridWidth;
+        this.gridBounds.height = gridHeight;
+
         this.gridCards.forEach((cardData, index) => {
             const col = index % this.cols;
             const row = Math.floor(index / this.cols);
@@ -95,5 +104,13 @@ class GridManager {
 
     getContainer() {
         return this.cardsContainer;
+    }
+
+    /**
+     * Returns the calculated position and dimensions of the grid.
+     * @returns {{x: number, y: number, width: number, height: number}}
+     */
+    getGridBounds() {
+        return this.gridBounds;
     }
 }

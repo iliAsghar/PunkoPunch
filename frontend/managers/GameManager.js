@@ -49,14 +49,17 @@ class GameManager {
             cols: 7
         });
 
-        this.initializePlayersAndTeams();
-
         // Create UI for the local player in the top-left corner
         const statsUI = new PlayerStatsUI(this.scene, this.mainContainer, 30, 30);
         statsUI.update(this.players.get(this.localPlayerId));
         this.playerStatsUIs.set(this.localPlayerId, statsUI);
 
         this.turnManager.initialize();
+
+        // Initialize grid first to get its dimensions for layout.
+        this.gridManager.initialize();
+
+        this.initializePlayersAndTeams();
 
         // --- Add Debug Buttons ---
         this.createDebugButtons();
@@ -68,7 +71,6 @@ class GameManager {
         }));
         this.pileManager.initialize(initialDeck);
         this.pileManager.createUI();
-        this.gridManager.initialize();
 
         // Start the first turn via the TurnManager.
         this.turnManager.startTurn();
@@ -94,17 +96,35 @@ class GameManager {
             this.players.set(playerId, player);
         }
 
-        this.createTeamUI('A', 30); // Team A on the left
-        this.createTeamUI('B', this.scene.game.config.width - 180 - 30); // Team B on the right
+        // Position team UIs relative to the grid
+        const gridBounds = this.gridManager.getGridBounds();
+        const teamUIPadding = 20;
+        const teamUIWidth = 180; // From TeamMemberUI
+
+        // Calculate the total height of one team's UI panel
+        const memberHeight = 60;
+        const memberSpacing = 15;
+        const teamUIHeight = (this.maxPlayersPerTeam * memberHeight) + Math.max(0, this.maxPlayersPerTeam - 1) * memberSpacing;
+
+        // Calculate positions to center the team UI vertically with the grid
+        const teamAX = gridBounds.x - teamUIWidth - teamUIPadding;
+        const teamBX = gridBounds.x + gridBounds.width + teamUIPadding;
+        const teamY = gridBounds.y + (gridBounds.height - teamUIHeight) / 2;
+
+        this.createTeamUI('A', teamAX, teamY); // Team A on the left of the grid
+        this.createTeamUI('B', teamBX, teamY); // Team B on the right of the grid
+
+        this.playerStatsUIs.get(this.localPlayerId)?.update(this.players.get(this.localPlayerId));
     }
 
     /**
      * Creates the UI container and individual member UIs for a given team.
      * @param {string} teamId 'A' or 'B'
      * @param {number} x The horizontal position for the team's UI container.
+     * @param {number} y The vertical position for the team's UI container.
      */
-    createTeamUI(teamId, x) {
-        const teamContainer = this.scene.add.container(x, 140);
+    createTeamUI(teamId, x, y) {
+        const teamContainer = this.scene.add.container(x, y);
         this.mainContainer.add(teamContainer);
 
         const teamPlayers = Array.from(this.players.values()).filter(p => p.team === teamId);
