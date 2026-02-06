@@ -173,7 +173,17 @@ class BaseCard {
         this.isHovered = true;
         if (this.isFlipping) return;
 
-        this.scene.tweens.killTweensOf([this.container, this.offsetContainer]);
+        // Stop any previous hover-specific tweens to prevent conflicts.
+        this.scene.tweens.getTweensOf([this.container, this.offsetContainer]).forEach(tween => {
+            // A hover tween animates 'scale' on the main container...
+            const isHoverScaleTween = tween.hasTarget(this.container) && tween.data.some(d => d.key === 'scale');
+            // ...or 'y' on the offset container.
+            const isHoverMoveTween = this.offsetContainer && tween.hasTarget(this.offsetContainer) && tween.data.some(d => d.key === 'y');
+
+            if (isHoverScaleTween || isHoverMoveTween) {
+                tween.stop();
+            }
+        });
 
         const scaleTarget = this.container;
         const moveTarget = this.offsetContainer;
@@ -195,7 +205,15 @@ class BaseCard {
         this.isHovered = false;
         if (this.isFlipping) return;
 
-        this.scene.tweens.killTweensOf([this.container, this.offsetContainer]);
+        // Stop any active hover-in tweens before starting the hover-out animation.
+        this.scene.tweens.getTweensOf([this.container, this.offsetContainer]).forEach(tween => {
+            const isHoverScaleTween = tween.hasTarget(this.container) && tween.data.some(d => d.key === 'scale');
+            const isHoverMoveTween = this.offsetContainer && tween.hasTarget(this.offsetContainer) && tween.data.some(d => d.key === 'y');
+
+            if (isHoverScaleTween || isHoverMoveTween) {
+                tween.stop();
+            }
+        });
 
         const tweenConfig = {
             duration: this.hoverOutDuration,
