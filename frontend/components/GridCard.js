@@ -26,6 +26,21 @@ class GridCard extends BaseCard {
         super(scene, x, y, cardId, cardInfo, finalOptions);
     }
 
+    /**
+     * Creates the visual content for the face of a grid card.
+     * This is just the centered value.
+     */
+    _createCardContent() {
+        // Card value text (centered)
+        const valueText = this.scene.add.text(
+            0,
+            0,
+            this.cardInfo.value.toString(),
+            { font: `bold ${this.fontSize}px Arial`, fill: '#000000' }
+        ).setOrigin(0.5, 0.5);
+        this.faceContentContainer.add(valueText);
+    }
+
     // Implement the required method for the viewscreen
     createViewscreenCard(options) {
         return new GridCard(this.scene, 0, 0, this.cardId, options);

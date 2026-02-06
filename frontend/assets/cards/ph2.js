@@ -7,7 +7,7 @@ window.CARD_DATA['ph2'] = {
 
     // Cost to play this card
     cost: {
-        mana: 1,
+        mana: 2,
     },
 
     // Function to execute when the card is played

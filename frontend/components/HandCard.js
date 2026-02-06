@@ -23,6 +23,39 @@ class HandCard extends BaseCard {
     }
 
     /**
+     * Creates the visual content for the face of a hand card.
+     * This includes the card value and mana cost.
+     */
+    _createCardContent() {
+        // Mana cost text (top-left)
+        if (this.cardInfo.cost && this.cardInfo.cost.mana) {
+            const manaCostText = this.scene.add.text(
+                -this.width / 2 + 10,
+                -this.height / 2 + 10,
+                this.cardInfo.cost.mana.toString(),
+                {
+                    font: `bold ${this.fontSize}px Arial`,
+                    fill: '#ffffff',
+                    backgroundColor: '#007bff',
+                    padding: { x: 8, y: 2 }
+                }
+            ).setOrigin(0, 0); // Origin should be top-left
+            this.faceContentContainer.add(manaCostText);
+        }
+
+        // Card value text (top-right)
+        const valueText = this.scene.add.text(
+            this.width / 2 - 10,
+            -this.height / 2 + 10,
+            this.cardInfo.value.toString(),
+            { font: `bold ${this.fontSize}px Arial`, fill: '#000000' }
+        ).setOrigin(1, 0); // Origin should be top-right
+
+        this.faceContentContainer.add(valueText);
+
+    }
+
+    /**
      * Implements the required method to create a card for the viewscreen.
      */
     createViewscreenCard(options) {

@@ -48,31 +48,28 @@ class BaseCard {
             this.cardRect.setStrokeStyle(2, 0x000000); // Default black border
         }
 
-        // Card value text
-        this.valueText = this.scene.add.text(
-            0, 0,
-            this.cardInfo.value.toString(),
-            { font: `bold ${this.fontSize}px Arial`, fill: '#000000' }
-        );
-
-        if (this.centerText) {
-            this.valueText.setOrigin(0.5, 0.5).setPosition(0, 0);
-        } else {
-            this.valueText.setOrigin(0, 0).setPosition(-this.width / 2 + 10, -this.height / 2 + 10);
-        }
-
         const parentForVisuals = this.offsetContainer || this.container;
-        parentForVisuals.add([this.cardRect, this.valueText]);
+        parentForVisuals.add(this.cardRect);
 
-        this.flippedText = this.scene.add.text(0, 0, 'XX', {
+        // Containers for card faces
+        this.faceContentContainer = this.scene.add.container(0, 0);
+        this.backContentContainer = this.scene.add.container(0, 0);
+        parentForVisuals.add([this.faceContentContainer, this.backContentContainer]);
+
+        // Back of card content (common to all cards)
+        const flippedText = this.scene.add.text(0, 0, 'XX', {
             font: `bold ${this.height * 0.3}px Arial`,
             fill: '#ff0000',
             align: 'center'
         }).setOrigin(0.5);
-        parentForVisuals.add(this.flippedText);
+        this.backContentContainer.add(flippedText);
 
-        this.valueText.setVisible(!this.isFlipped);
-        this.flippedText.setVisible(this.isFlipped);
+        // Subclasses must implement this to populate the faceContentContainer
+        this._createCardContent();
+
+        // Set initial visibility based on isFlipped
+        this.faceContentContainer.setVisible(!this.isFlipped);
+        this.backContentContainer.setVisible(this.isFlipped);
 
         this.container.setRotation(this.rotation);
 
@@ -143,8 +140,8 @@ class BaseCard {
             ease: 'Power2.easeIn',
             onComplete: () => {
                 this.isFlipped = !this.isFlipped;
-                this.valueText.setVisible(!this.isFlipped);
-                this.flippedText.setVisible(this.isFlipped);
+                this.faceContentContainer.setVisible(!this.isFlipped);
+                this.backContentContainer.setVisible(this.isFlipped);
 
                 const finalScale = this.isHovered ? this.hoverZoom : 1;
                 const finalTweenConfig = {
@@ -236,6 +233,14 @@ class BaseCard {
             }
             this.cardRect.setStrokeStyle(2, 0x000000);
         }
+    }
+
+    /**
+     * Abstract method for subclasses to implement.
+     * This is where card-specific visuals (text, icons, etc.) should be created and added to `this.faceContentContainer`.
+     */
+    _createCardContent() {
+        throw new Error("_createCardContent() must be implemented by subclasses.");
     }
 
     /**
