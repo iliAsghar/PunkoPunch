@@ -310,6 +310,12 @@ class BaseCard {
         this.scene.scale.on('resize', drawModalContents, this);
 
         const closeModal = () => {
+            // Find the card instance within the viewscreen to stop its animations.
+            // This prevents errors if the modal is closed while the card is flipping.
+            const largeCardContainer = viewscreenContainer.getAt(1)?.getAt(0);
+            if (largeCardContainer) {
+                this.scene.tweens.killTweensOf(largeCardContainer);
+            }
             this.scene.tweens.add({
                 targets: viewscreenContainer,
                 alpha: 0,
