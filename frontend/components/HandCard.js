@@ -31,7 +31,6 @@ class HandCard extends BaseCard {
         const cardBottomHeight = this.height * 0.40; // 40% of card height for bottom section
 
         const padding = 10;
-        const topSectionY = -this.height / 2 + padding;
 
         // Mana cost text (top-left)
         if (this.cardInfo.cost && this.cardInfo.cost.mana !== undefined) {
@@ -68,8 +67,12 @@ class HandCard extends BaseCard {
 
         // --- Dynamic Font Sizing ---
         const availableHeight = cardBottomHeight - padding; // Total height for title + description
-        let titleFontSize = 18;
-        let descFontSize = 14;
+        
+        // Base font sizes are now proportional to the card's main fontSize property.
+        // This allows them to scale up correctly in viewscreen mode.
+        let titleFontSize = this.fontSize * 0.65; // Approx 18 when fontSize is 28
+        let descFontSize = this.fontSize * 0.5;  // Approx 14 when fontSize is 28
+
         const minFontSize = 8; // Don't shrink smaller than this
 
         let tempTitle, tempDesc, totalHeight;

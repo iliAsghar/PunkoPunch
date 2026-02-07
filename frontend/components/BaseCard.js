@@ -307,13 +307,15 @@ class BaseCard {
 
         const createLargeCard = () => {
             const largeCardHeight = this.scene.cameras.main.height * 0.8;
-            const largeCardWidth = largeCardHeight * (this.width / this.height);
+            const scaleFactor = largeCardHeight / this.height;
+            const largeCardWidth = this.width * scaleFactor;
+            const scaledFontSize = this.fontSize * scaleFactor;
 
             // Use the subclass's implementation to create the correct card type
             const card = this.createViewscreenCard({
                 width: largeCardWidth,
                 height: largeCardHeight,
-                fontSize: 64,
+                fontSize: scaledFontSize,
                 interactive: true,
                 allowViewscreen: false,
                 isFlipped: this.isFlipped,
