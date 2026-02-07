@@ -7,14 +7,14 @@ window.CARD_DATA['ph1'] = {
 
     // Cost to play this card
     cost: {
-        mana: 1,
+        mana: -1,
     },
 
     // target_type = 'team' / 'player' / 'board' / 'global'
     target_type: 'player',
 
     // target_scope = 'ally' / 'enemy' / 'any'
-    target_scope: 'enemy',
+    target_scope: 'ally',
 
     // Function to execute when the card is played
     play: function(gameManager, target) {

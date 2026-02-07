@@ -373,5 +373,10 @@ class BaseCard {
 
     destroy() {
         this.container.destroy();
+
+        // Also destroy any dynamically created text objects to prevent memory leaks
+        if (this.titleText) this.titleText.destroy();
+        if (this.descriptionText) this.descriptionText.destroy();
+        if (this.artBox) this.artBox.destroy();
     }
 }
