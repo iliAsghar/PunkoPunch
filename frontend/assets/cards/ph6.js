@@ -17,7 +17,7 @@ window.CARD_DATA['ph6'] = {
     target_scope: 'enemy',
 
     // Function to execute when the card is played
-    play: (gameManager, target) => {
-        gameManager.effectManager.damagePlayer(target, 3);
+    play: function(gameManager, target) {
+        gameManager.effectManager.damagePlayer(target, this.value);
     }
 };

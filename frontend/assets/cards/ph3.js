@@ -1,6 +1,7 @@
 window.CARD_DATA['ph3'] = {
     id: 'ph3',
     name: 'Shockwave',
+    value: 2,
     type: 'Attack',
     description: 'Deal 1 damage to all enemies.',
 
@@ -16,9 +17,9 @@ window.CARD_DATA['ph3'] = {
     target_scope: 'enemy',
 
     // Function to execute when the card is played
-    play: (gameManager, target) => {
+    play: function(gameManager, target) {
         if (target) {
-            gameManager.effectManager.damageTeam(target.team, 1);
+            gameManager.effectManager.damageTeam(target.team, this.value); // 'this' now refers to the card object
         }
     }
 };

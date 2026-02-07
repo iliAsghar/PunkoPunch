@@ -109,6 +109,18 @@ class TeamMemberUI {
     }
 
     /**
+     * Forcefully removes all highlight states (target, hover) and stops animations.
+     */
+    clearAllHighlights() {
+        this.isTargetable = false;
+        this.isHovered = false;
+        this.stopWobble();
+        // Reset scale in case it was stuck in a hover-up state.
+        this.container.setScale(1);
+        this.drawBackground();
+    }
+
+    /**
      * Starts a continuous wobble animation to indicate a valid target.
      */
     startWobble() {

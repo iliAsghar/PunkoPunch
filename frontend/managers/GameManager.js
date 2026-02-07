@@ -278,7 +278,7 @@ class GameManager {
         this.handManager.getContainer().setInteractive();
         this.handManager.playButton.setInteractive();
         this.handManager.endTurnButton.setInteractive();
-        this.updateTargetHighlights(); // This will clear all highlights.
+        this.clearAllTargetHighlights(); // This will clear all highlights.
     }
 
     /**
@@ -307,6 +307,15 @@ class GameManager {
         });
     }
 
+    /**
+     * Forcefully removes all 'target' and 'hover' highlights from all team UIs.
+     * Called when exiting targeting mode.
+     */
+    clearAllTargetHighlights() {
+        this.teamUIs.forEach(ui => {
+            ui.clearAllHighlights();
+        });
+    }
     onTargetHover(memberUI, player, isHovering) {
         if (!this.targetingState) return;
 
