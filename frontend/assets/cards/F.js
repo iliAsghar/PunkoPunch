@@ -1,9 +1,9 @@
-window.CARD_DATA['ph5'] = {
-    id: 'ph5',
-    name: 'Placeholder 5',
-    value: 5,
-    type: 'player',
-    description: 'A basic placeholder card.',
+window.CARD_DATA['ph7'] = {
+    id: 'ph7',
+    name: 'Attack F',
+    value: 7,
+    type: 'Attack',
+    description: 'Deal {value} damage to an enemy.',
 
     // Cost to play this card
     cost: {

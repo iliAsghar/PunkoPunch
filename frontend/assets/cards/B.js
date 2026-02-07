@@ -1,13 +1,13 @@
-window.CARD_DATA['ph4'] = {
-    id: 'ph4',
-    name: 'Placeholder 4',
-    value: 4,
-    type: 'player',
-    description: 'A basic placeholder card.',
+window.CARD_DATA['ph2'] = {
+    id: 'ph2',
+    name: 'Attack B',
+    value: 2,
+    type: 'Attack',
+    description: 'Deal {value} damage to an enemy.',
 
     // Cost to play this card
     cost: {
-        mana: 9,
+        mana: 2,
     },
 
     // target_type = 'team' / 'player' / 'board' / 'global'

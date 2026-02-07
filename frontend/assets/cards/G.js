@@ -1,9 +1,9 @@
 window.CARD_DATA['ph8'] = {
     id: 'ph8',
-    name: 'Placeholder 8',
+    name: 'Attack G',
     value: 8,
-    type: 'player',
-    description: 'A basic placeholder card.',
+    type: 'Attack',
+    description: 'Deal {value} damage to an enemy.',
 
     // Cost to play this card
     cost: {

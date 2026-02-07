@@ -48,16 +48,16 @@ class HandCard extends BaseCard {
             this.faceContentContainer.add(manaCostText);
         }
 
-        // Card value text (top-right)
-        if (this.cardInfo.value !== undefined) {
-            const valueText = this.scene.add.text(
-                this.width / 2 - padding,
-                topSectionY,
-                this.cardInfo.value.toString(),
-                { font: `bold ${this.fontSize}px Arial`, fill: '#000000' }
-            ).setOrigin(1, 0);
-            this.faceContentContainer.add(valueText);
-        }
+        // // Card value text (top-right) - Temporarily removed per request
+        // if (this.cardInfo.value !== undefined) {
+        //     const valueText = this.scene.add.text(
+        //         this.width / 2 - padding,
+        //         topSectionY,
+        //         this.cardInfo.value.toString(),
+        //         { font: `bold ${this.fontSize}px Arial`, fill: '#000000' }
+        //     ).setOrigin(1, 0);
+        //     this.faceContentContainer.add(valueText);
+        // }
 
         const contentWidth = this.width - padding * 2;
 
@@ -66,6 +66,7 @@ class HandCard extends BaseCard {
         const contentBottomY = this.height / 2 - padding;
 
         // --- Dynamic Text Fitting ---
+        const processedDescription = this._getProcessedDescription();
         const minFontSize = (this.height / 180) * 8; // Scale min font size as well
         let titleFontSize = this.fontSize * 0.65;
         let descFontSize = this.fontSize * 0.5;
@@ -82,7 +83,7 @@ class HandCard extends BaseCard {
         const gap = (this.height / 180) * 4; // Scaled gap
         const availableDescHeight = (cardBottomHeight - padding) - titleHeight - gap;
 
-        let tempDesc = this.scene.add.text(0, 0, this.cardInfo.description, { font: `${descFontSize}px Arial`, wordWrap: { width: contentWidth } }).setVisible(false);
+        let tempDesc = this.scene.add.text(0, 0, processedDescription, { font: `${descFontSize}px Arial`, wordWrap: { width: contentWidth } }).setVisible(false);
         while (tempDesc.height > availableDescHeight && descFontSize > minFontSize) {
             descFontSize--;
             tempDesc.setStyle({ font: `${descFontSize}px Arial`, wordWrap: { width: contentWidth } });
@@ -92,7 +93,7 @@ class HandCard extends BaseCard {
         this.descriptionText = this.scene.add.text(
             0,
             contentBottomY, // Position its bottom edge at the content boundary.
-            this.cardInfo.description,
+            processedDescription,
             { font: `${descFontSize}px Arial`, fill: '#333333', align: 'center', wordWrap: { width: contentWidth } }
         ).setOrigin(0.5, 1); // Set origin to bottom-center.
         this.faceContentContainer.add(this.descriptionText);
@@ -112,6 +113,20 @@ class HandCard extends BaseCard {
         // Clean up temporary text objects
         tempTitle.destroy();
         tempDesc.destroy();
+    }
+
+    /**
+     * Processes the description string to replace placeholders like {value} with actual card data.
+     * @returns {string} The processed description text.
+     */
+    _getProcessedDescription() {
+        let description = this.cardInfo.description || '';
+        // Replace any {key} with the value from cardInfo
+        description = description.replace(/{(\w+)}/g, (match, key) => {
+            // Return the value from cardInfo if it exists, otherwise return the original match (e.g., "{value}")
+            return this.cardInfo[key] !== undefined ? this.cardInfo[key] : match;
+        });
+        return description;
     }
 
     /**

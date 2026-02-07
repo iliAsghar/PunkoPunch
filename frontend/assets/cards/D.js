@@ -1,9 +1,9 @@
-window.CARD_DATA['ph9'] = {
-    id: 'ph9',
-    name: 'Placeholder 9',
-    value: 9,
-    type: 'player',
-    description: 'A basic placeholder card.',
+window.CARD_DATA['ph5'] = {
+    id: 'ph5',
+    name: 'Attack D',
+    value: 5,
+    type: 'Attack',
+    description: 'Deal {value} damage to an enemy.',
 
     // Cost to play this card
     cost: {
@@ -18,6 +18,6 @@ window.CARD_DATA['ph9'] = {
 
     // Function to execute when the card is played
     play: function(gameManager, target) {
-        gameManager.effectManager.damagePlayer(target, this.value); // 'this' now refers to the card object
+        gameManager.effectManager.damagePlayer(target, this.value);
     }
 };

@@ -1,23 +1,23 @@
-window.CARD_DATA['ph1'] = {
-    id: 'ph1',
-    name: 'Quick Jab',
-    value: 3,
+window.CARD_DATA['ph4'] = {
+    id: 'ph4',
+    name: 'Attack C',
+    value: 4,
     type: 'Attack',
-    description: 'Deal 3 damage to an enemy.',
+    description: 'Deal {value} damage to an enemy.',
 
     // Cost to play this card
     cost: {
-        mana: -1,
+        mana: 9,
     },
 
     // target_type = 'team' / 'player' / 'board' / 'global'
     target_type: 'player',
 
     // target_scope = 'ally' / 'enemy' / 'any'
-    target_scope: 'ally',
+    target_scope: 'enemy',
 
     // Function to execute when the card is played
     play: function(gameManager, target) {
-        gameManager.effectManager.damagePlayer(target, this.value); // 'this' now refers to the card object
+        gameManager.effectManager.damagePlayer(target, this.value);
     }
 };

@@ -9,6 +9,14 @@
  * array to make it available in the game.
  */
 const CARD_MANIFEST = [
-    'ph1.js', 'ph2.js', 'ph3.js', 'ph4.js', 'ph5.js',
-    'ph6.js', 'ph7.js', 'ph8.js', 'ph9.js', 'ph10.js'
+    'A.js',
+    'B.js',
+    'C.js',
+    'D.js',
+    'E.js',
+    'F.js',
+    'G.js',
+    'H.js',
+    'P.js',
+    'SHOCKWAVE.js'
 ];
