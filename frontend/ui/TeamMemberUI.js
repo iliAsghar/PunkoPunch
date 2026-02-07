@@ -50,7 +50,8 @@ class TeamMemberUI {
      */
     update(player, isCurrentPlayer) {
         if (!player) return;
-        this.nameText.setText(player.name);
+        const displayName = isCurrentPlayer ? `${player.name} (you)` : player.name;
+        this.nameText.setText(displayName);
         if (player.hp <= 0) {
             // When a player is defeated, immediately clear any targeting/hover effects.
             this.clearAllHighlights();
@@ -125,9 +126,6 @@ class TeamMemberUI {
         // The border color is determined by priority: hover > targetable > current player
         if (this.isHovered) {
             this.background.lineStyle(3, 0x00ff00, 1); // Bright green for hover. This takes priority over other borders.
-            this.background.strokeRoundedRect(-90, -30, 180, 60, 8);
-        } else if (this.isCurrentPlayer) {
-            this.background.lineStyle(3, 0xffd700, 1); // Gold border for highlight
             this.background.strokeRoundedRect(-90, -30, 180, 60, 8);
         }
     }
