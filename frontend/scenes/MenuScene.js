@@ -36,8 +36,31 @@ class MenuScene extends Phaser.Scene {
 
         this.add.dom(width / 2, height / 2, inputElement);
 
+        // --- Debug Mode Checkbox ---
+        const debugContainer = document.createElement('div');
+        debugContainer.style.display = 'flex';
+        debugContainer.style.alignItems = 'center';
+        debugContainer.style.justifyContent = 'center';
+        debugContainer.style.fontSize = '20px';
+        debugContainer.style.color = '#333';
+
+        const debugCheckbox = document.createElement('input');
+        debugCheckbox.type = 'checkbox';
+        debugCheckbox.id = 'debugModeCheckbox';
+        debugCheckbox.style.marginRight = '10px';
+        debugCheckbox.checked = true; // Default to on
+
+        const debugLabel = document.createElement('label');
+        debugLabel.htmlFor = 'debugModeCheckbox';
+        debugLabel.innerText = 'Debug Mode';
+
+        debugContainer.appendChild(debugCheckbox);
+        debugContainer.appendChild(debugLabel);
+
+        this.add.dom(width / 2, height / 2 + 45, debugContainer);
+
         // --- Start Game Button ---
-        const startButton = this.add.text(width / 2, height / 2 + 80, 'Start Game', {
+        const startButton = this.add.text(width / 2, height / 2 + 95, 'Start Game', {
             font: 'bold 32px Arial',
             fill: '#ffffff',
             backgroundColor: '#000000',
@@ -49,7 +72,11 @@ class MenuScene extends Phaser.Scene {
         startButton.on('pointerdown', (pointer) => {
             if (pointer.rightButtonDown()) return;
             const maxPlayers = Math.min(parseInt(inputElement.value, 10) || 2, 4); // Fallback to 2 if input is invalid, max of 4
-            this.scene.start('GameScene', { maxPlayersPerTeam: maxPlayers });
+            const isDebugMode = debugCheckbox.checked;
+            this.scene.start('GameScene', {
+                maxPlayersPerTeam: maxPlayers,
+                debugMode: isDebugMode
+            });
         });
 
         startButton.on('pointerover', () => startButton.setBackgroundColor('#333333'));

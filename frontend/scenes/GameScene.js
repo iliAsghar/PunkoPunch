@@ -11,7 +11,7 @@ class GameScene extends Phaser.Scene {
      */
     init(data) {
         // Store the game settings received from the menu
-        this.gameSettings = data;
+        this.gameSettings = data || {};
     }
     
     /**

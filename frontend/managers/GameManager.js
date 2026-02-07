@@ -7,6 +7,7 @@ class GameManager {
         this.scene = scene;
         this.mainContainer = mainContainer;
         this.maxPlayersPerTeam = gameSettings.maxPlayersPerTeam || 2; // Default to 2 if not set
+        this.debugMode = gameSettings.debugMode || false;
         this.handManager = null;
         this.turnManager = null;
         this.pileManager = null;
@@ -61,8 +62,10 @@ class GameManager {
 
         this.initializePlayersAndTeams();
 
-        // --- Add Debug Buttons ---
-        this.createDebugButtons();
+        // --- Add Debug Buttons (if in debug mode) ---
+        if (this.debugMode) {
+            this.createDebugButtons();
+        }
         
         // Initialize deck using the loaded deck definition.
         // DECK1_CARD_IDS is globally available from frontend/decks/deck1.js
