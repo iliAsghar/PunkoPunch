@@ -30,19 +30,19 @@ class HandCard extends BaseCard {
         const cardTopHeight = this.height * 0.15;  // 15% of card height for top section
         const cardBottomHeight = this.height * 0.40; // 40% of card height for bottom section
 
-        const padding = 10;
+        // Make padding proportional to the card size to ensure it scales correctly.
+        const padding = (this.height / 180) * 10;
+        const topSectionY = -this.height / 2 + padding;
 
         // Mana cost text (top-left)
         if (this.cardInfo.cost && this.cardInfo.cost.mana !== undefined) {
             const manaCostText = this.scene.add.text(
                 -this.width / 2 + padding,
-                -this.height / 2 + padding,
+                topSectionY,
                 this.cardInfo.cost.mana.toString(),
                 {
                     font: `bold ${this.fontSize}px Arial`,
-                    fill: '#ffffff',
-                    backgroundColor: '#007bff',
-                    padding: { x: 8, y: 2 }
+                    fill: '#007bff',
                 }
             ).setOrigin(0, 0);
             this.faceContentContainer.add(manaCostText);
@@ -52,7 +52,7 @@ class HandCard extends BaseCard {
         if (this.cardInfo.value !== undefined) {
             const valueText = this.scene.add.text(
                 this.width / 2 - padding,
-                -this.height / 2 + padding,
+                topSectionY,
                 this.cardInfo.value.toString(),
                 { font: `bold ${this.fontSize}px Arial`, fill: '#000000' }
             ).setOrigin(1, 0);
@@ -65,40 +65,28 @@ class HandCard extends BaseCard {
         // Define the absolute bottom of the content area inside the card.
         const contentBottomY = this.height / 2 - padding;
 
-        // --- Dynamic Font Sizing ---
-        const availableHeight = cardBottomHeight - padding; // Total height for title + description
-        
-        // Base font sizes are now proportional to the card's main fontSize property.
-        // This allows them to scale up correctly in viewscreen mode.
-        let titleFontSize = this.fontSize * 0.65; // Approx 18 when fontSize is 28
-        let descFontSize = this.fontSize * 0.5;  // Approx 14 when fontSize is 28
+        // --- Dynamic Text Fitting ---
+        const minFontSize = (this.height / 180) * 8; // Scale min font size as well
+        let titleFontSize = this.fontSize * 0.65;
+        let descFontSize = this.fontSize * 0.5;
 
-        const minFontSize = 8; // Don't shrink smaller than this
+        // 1. Fit Title Width: Shrink title font size until it fits on a single line.
+        let tempTitle = this.scene.add.text(0, 0, this.cardInfo.name, { font: `bold ${titleFontSize}px Arial` }).setVisible(false);
+        while (tempTitle.width > contentWidth && titleFontSize > minFontSize) {
+            titleFontSize--;
+            tempTitle.setFontSize(titleFontSize);
+        }
 
-        let tempTitle, tempDesc, totalHeight;
+        // 2. Fit Description Height: Shrink description font size until it fits in the remaining space.
+        const titleHeight = tempTitle.height;
+        const gap = (this.height / 180) * 4; // Scaled gap
+        const availableDescHeight = (cardBottomHeight - padding) - titleHeight - gap;
 
-        // Loop to shrink font sizes until the text fits
-        do {
-            // Create temporary text objects to measure height
-            if (tempTitle) tempTitle.destroy();
-            tempTitle = this.scene.add.text(0, 0, this.cardInfo.name, { font: `bold ${titleFontSize}px Arial`, wordWrap: { width: contentWidth } }).setVisible(false);
-
-            if (tempDesc) tempDesc.destroy();
-            tempDesc = this.scene.add.text(0, 0, this.cardInfo.description, { font: `${descFontSize}px Arial`, wordWrap: { width: contentWidth } }).setVisible(false);
-
-            totalHeight = tempTitle.height + tempDesc.height + 4; // 4px gap
-
-            // If it doesn't fit, shrink the larger font size, or both if they are close
-            if (totalHeight > availableHeight) {
-                if (titleFontSize > descFontSize && titleFontSize > minFontSize) {
-                    titleFontSize--;
-                } else if (descFontSize > minFontSize) {
-                    descFontSize--;
-                } else {
-                    break; // Stop shrinking if we hit the minimum font size
-                }
-            }
-        } while (totalHeight > availableHeight && (titleFontSize > minFontSize || descFontSize > minFontSize));
+        let tempDesc = this.scene.add.text(0, 0, this.cardInfo.description, { font: `${descFontSize}px Arial`, wordWrap: { width: contentWidth } }).setVisible(false);
+        while (tempDesc.height > availableDescHeight && descFontSize > minFontSize) {
+            descFontSize--;
+            tempDesc.setStyle({ font: `${descFontSize}px Arial`, wordWrap: { width: contentWidth } });
+        }
 
         // Create the final description text and anchor it to the bottom of the card.
         this.descriptionText = this.scene.add.text(
@@ -111,9 +99,19 @@ class HandCard extends BaseCard {
 
         // --- Title ---
         // Now create the real title and anchor it right above the description.
-        const titleY = this.descriptionText.y - this.descriptionText.height - 4;
-        this.titleText = this.scene.add.text(0, titleY, this.cardInfo.name, { font: `bold ${titleFontSize}px Arial`, fill: '#000000', align: 'center', wordWrap: { width: contentWidth } }).setOrigin(0.5, 1);
+        const titleY = this.descriptionText.y - this.descriptionText.height - gap;
+        this.titleText = this.scene.add.text(
+            0, 
+            titleY, 
+            this.cardInfo.name, 
+            // Note: No wordWrap here to enforce a single line.
+            { font: `bold ${titleFontSize}px Arial`, fill: '#000000', align: 'center' }
+        ).setOrigin(0.5, 1);
         this.faceContentContainer.add(this.titleText);
+
+        // Clean up temporary text objects
+        tempTitle.destroy();
+        tempDesc.destroy();
     }
 
     /**
