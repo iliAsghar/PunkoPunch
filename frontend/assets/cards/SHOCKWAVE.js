@@ -3,7 +3,7 @@ window.CARD_DATA['SHOCKWAVE'] = {
     name: 'Shockwave',
     value: 2,
     type: 'Attack',
-    description: 'Deal {value} damage to your team',
+    description: 'Deal {value} damage to all players on your team',
 
     // Cost to play this card
     cost: {
