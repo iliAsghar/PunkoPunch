@@ -262,24 +262,41 @@ class GameManager {
      * Creates debug buttons for testing stats.
      */
     createDebugButtons() {
-        const buttonY = 30;
-        let buttonX = 360; // Start position for buttons, to the right of the stats
-        const buttonSpacing = 130;
+        let buttonY = 10; // Start position from the top
+        const buttonX = 10; // Start position from the left
+        const buttonSpacing = 30; // Vertical spacing between buttons
 
         // Damage Button
-        this.createTestButton(buttonX, buttonY, 'Damage 1', () => this.applyDamage(this.localPlayerId, 1));
-        buttonX += buttonSpacing;
+        this.createTestButton(buttonX, buttonY, 'Damage 1', () => this.applyDamage(this.localPlayerId, 1), true);
+        buttonY += buttonSpacing;
 
         // Heal Button
-        this.createTestButton(buttonX, buttonY, 'Heal 1', () => this.applyHeal(this.localPlayerId, 1));
-        buttonX = 360; // Reset X for the next row
+        this.createTestButton(buttonX, buttonY, 'Heal 1', () => this.applyHeal(this.localPlayerId, 1), true);
+        buttonY += buttonSpacing;
 
         // Spend Mana Button
-        this.createTestButton(buttonX, buttonY + 40, 'Spend Mana 1', () => this.applyManaCost(this.localPlayerId, 1));
-        buttonX += buttonSpacing;
+        this.createTestButton(buttonX, buttonY, 'Spend Mana 1', () => this.applyManaCost(this.localPlayerId, 1), true);
+        buttonY += buttonSpacing;
 
         // Gain Mana Button
-        this.createTestButton(buttonX, buttonY + 40, 'Gain Mana 1', () => this.applyManaGain(this.localPlayerId, 1));
+        this.createTestButton(buttonX, buttonY, 'Gain Mana 1', () => this.applyManaGain(this.localPlayerId, 1), true);
+        buttonY += buttonSpacing;
+
+        // Draw 1 Card Button
+        this.createTestButton(buttonX, buttonY, 'Draw 1 Card', () => this.drawCard(1), true);
+        buttonY += buttonSpacing;
+
+        // Draw 5 Cards Button
+        this.createTestButton(buttonX, buttonY, 'Draw 5 Cards', () => this.drawCard(5), true);
+        buttonY += buttonSpacing;
+
+        // Discard Selected Button
+        this.createTestButton(buttonX, buttonY, 'Discard Selected', () => this.discardSelectedCard(), true);
+        buttonY += buttonSpacing;
+
+        // Discard All Button
+        this.createTestButton(buttonX, buttonY, 'Discard All', () => this.discardAllCards(), true);
+        buttonY += buttonSpacing;
     }
 
     /**
@@ -288,10 +305,11 @@ class GameManager {
      * @param {number} y - Y position.
      * @param {string} text - Button label.
      * @param {function} onClick - Callback function.
+     * @param {boolean} [isSmall=false] - Whether to use smaller styling.
      */
-    createTestButton(x, y, text, onClick) {
+    createTestButton(x, y, text, onClick, isSmall = false) {
         const btnText = this.scene.add.text(x, y, text, {
-            font: '16px Arial',
+            font: isSmall ? '12px Arial' : '16px Arial',
             fill: '#000',
             backgroundColor: '#ddd',
             padding: { x: 10, y: 5 }
