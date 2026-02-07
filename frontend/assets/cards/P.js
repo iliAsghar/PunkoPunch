@@ -1,5 +1,5 @@
-window.CARD_DATA['ph10'] = {
-    id: 'ph10',
+window.CARD_DATA['P'] = {
+    id: 'P',
     name: 'Attack P',
     value: 10,
     type: 'Attack',
