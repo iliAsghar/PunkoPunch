@@ -51,7 +51,15 @@ class TeamMemberUI {
     update(player, isCurrentPlayer) {
         if (!player) return;
         this.nameText.setText(player.name);
-        this.hpText.setText(`HP: ${player.hp} / ${player.maxHp}`);
+        if (player.hp <= 0) {
+            // When a player is defeated, immediately clear any targeting/hover effects.
+            this.clearAllHighlights();
+            this.hpText.setText('Defeated');
+            this.hpText.setStyle({ fill: '#ff4d4d' }); // Red color for defeated status
+        } else {
+            this.hpText.setText(`HP: ${player.hp} / ${player.maxHp}`);
+            this.hpText.setStyle({ fill: '#f0f0f0' }); // Reset to default color
+        }
         this.isCurrentPlayer = isCurrentPlayer;
         this.drawBackground();
     }
@@ -64,6 +72,10 @@ class TeamMemberUI {
      * @param {number} [options.syncDelay] - A delay for synchronized animations.
      */
     setHighlight(state, type, options = {}) {
+        const playerIsDead = this.hpText.text === 'Defeated';
+        // Dead players cannot be targeted or hovered.
+        if (playerIsDead) return;
+
         if (type === 'target') {
             if (this.isTargetable === state) return; // No change needed
             this.isTargetable = state;
@@ -99,8 +111,15 @@ class TeamMemberUI {
      * Draws or redraws the background based on its current state.
      */
     drawBackground() {
+        const playerIsDead = this.hpText.text === 'Defeated';
+
         this.background.clear();
-        this.background.fillStyle(0x000000, 0.6);
+        if (playerIsDead) {
+            this.background.fillStyle(0x1a1a1a, 0.8); // Darker, more opaque background for dead players
+        } else {
+            this.background.fillStyle(0x000000, 0.6);
+        }
+
         this.background.fillRoundedRect(-90, -30, 180, 60, 8);
 
         // The border color is determined by priority: hover > targetable > current player
@@ -117,6 +136,10 @@ class TeamMemberUI {
      * Forcefully removes all highlight states (target, hover) and stops animations.
      */
     clearAllHighlights() {
+        // If the player is dead, highlights are already disabled, but this ensures a clean state.
+        const playerIsDead = this.hpText.text === 'Defeated';
+        if (playerIsDead) return;
+
         this.isTargetable = false;
         this.isHovered = false;
         this.stopWobble();

@@ -602,33 +602,39 @@ class GameManager {
      * @param {string} playerId 
      */
     handlePlayerDeath(playerId) {
-        // For now, we only handle the local player's death
-        if (playerId !== this.localPlayerId) return;
+        const player = this.players.get(playerId);
+        if (!player || player.hp > 0) return; // Should already be dead, but double-check.
 
-        // Don't do anything if already in the death state
-        if (this.deathText) return;
+        // Update the team UI to show the player is defeated.
+        const teamUI = this.teamUIs.get(playerId);
+        if (teamUI) {
+            teamUI.update(player, playerId === this.localPlayerId);
+        }
 
-        // Stop the turn timer.
-        this.turnManager.freezeTimerOnDeath();
+        // --- Handle local player's death specifically ---
+        if (playerId === this.localPlayerId) {
+            // Don't do anything if already in the death state
+            if (this.deathText) return;
 
-        // Instantly clear the player's hand.
-        this.handManager.emptyHandInstantly();
+            // Stop the turn timer.
+            this.turnManager.freezeTimerOnDeath();
 
-        // Hide game elements
-        this.handManager.getContainer().setVisible(false);
-        this.pileManager.uiContainer.setVisible(false);
-        this.gridManager.cardsContainer.setVisible(false);
+            // Instantly clear the player's hand.
+            this.handManager.emptyHandInstantly();
 
-        // Display "YOU'RE DEAD" message
-        const { width, height } = this.scene.game.config;
-        this.deathText = this.scene.add.text(width / 2, height / 2, "YOU'RE DEAD", {
-            font: 'bold 96px Arial',
-            fill: '#ff0000',
-            stroke: '#000000',
-            strokeThickness: 8
-        }).setOrigin(0.5);
+            // Hide game elements
+            this.handManager.getContainer().setVisible(false);
 
-        this.mainContainer.add(this.deathText);
+            // Display "YOU'RE DEAD" message
+            const { width, height } = this.scene.game.config;
+            this.deathText = this.scene.add.text(width / 2, height / 2, "YOU'RE DEAD", {
+                font: 'bold 96px Arial',
+                fill: '#ff0000',
+                stroke: '#000000',
+                strokeThickness: 8
+            }).setOrigin(0.5);
+            this.mainContainer.add(this.deathText);
+        }
     }
 
     /**

@@ -48,7 +48,7 @@ class MenuScene extends Phaser.Scene {
         debugCheckbox.type = 'checkbox';
         debugCheckbox.id = 'debugModeCheckbox';
         debugCheckbox.style.marginRight = '10px';
-        debugCheckbox.checked = true; // Default to on
+        debugCheckbox.checked = false; // Default to on
 
         const debugLabel = document.createElement('label');
         debugLabel.htmlFor = 'debugModeCheckbox';

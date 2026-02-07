@@ -14,7 +14,7 @@ window.CARD_DATA['ph3'] = {
     target_type: 'team',
 
     // target_scope = 'ally' / 'enemy' / 'any'
-    target_scope: 'enemy',
+    target_scope: 'ally',
 
     // Function to execute when the card is played
     play: function(gameManager, target) {
