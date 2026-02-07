@@ -21,6 +21,7 @@ class GameManager {
         this.isBulkOperationInProgress = false; // To lock actions during 'Discard All'
         this.targetingState = null; // To manage card targeting
         this.deathText = null;
+        this.teamSyncDelays = new Map(); // For synchronized team animations
     }
     
     /**
@@ -216,6 +217,12 @@ class GameManager {
             return;
         }
 
+        // If the card targets a team, generate a shared animation delay for each team.
+        if (target_type === 'team') {
+            this.teamSyncDelays.set('A', Math.random() * 400);
+            this.teamSyncDelays.set('B', Math.random() * 400);
+        }
+
         // Set the targeting state.
         this.targetingState = { cardData, cardInfo };
         console.log(`Entering targeting mode for ${cardInfo.name}. Target type: ${target_type}, scope: ${target_scope}.`);
@@ -275,6 +282,7 @@ class GameManager {
      */
     exitTargetingMode() {
         this.targetingState = null;
+        this.teamSyncDelays.clear();
         this.handManager.getContainer().setInteractive();
         this.handManager.playButton.setInteractive();
         this.handManager.endTurnButton.setInteractive();
@@ -299,11 +307,17 @@ class GameManager {
      * Updates the visual highlight on all potential targets.
      */
     updateTargetHighlights() {
-        const scope = this.targetingState?.cardInfo.target_scope;
+        if (!this.targetingState) return;
+
+        const { target_scope, target_type } = this.targetingState.cardInfo;
+
         this.teamUIs.forEach((ui, playerId) => {
             const player = this.players.get(playerId);
-            const isValid = this.targetingState ? this.isValidTarget(player, scope) : false;
-            ui.setHighlight(isValid, 'target');
+            const isValid = this.isValidTarget(player, target_scope);
+            ui.setHighlight(isValid, 'target', {
+                // Pass the synchronized delay if the card is team-based
+                syncDelay: target_type === 'team' ? this.teamSyncDelays.get(player.team) : undefined
+            });
         });
     }
 
@@ -318,9 +332,21 @@ class GameManager {
     }
     onTargetHover(memberUI, player, isHovering) {
         if (!this.targetingState) return;
-
-        const scope = this.targetingState.cardInfo.target_scope;
-        if (this.isValidTarget(player, scope)) {
+ 
+        const { target_scope, target_type } = this.targetingState.cardInfo;
+ 
+        if (!this.isValidTarget(player, target_scope)) return;
+ 
+        if (target_type === 'team') {
+            // If it's a team-target card, apply hover to the entire team.
+            this.teamUIs.forEach((ui, pId) => {
+                const p = this.players.get(pId);
+                if (p.team === player.team) {
+                    ui.setHighlight(isHovering, 'hover');
+                }
+            });
+        } else {
+            // Otherwise, just apply to the single member.
             memberUI.setHighlight(isHovering, 'hover');
         }
     }

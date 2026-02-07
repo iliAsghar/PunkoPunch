@@ -60,15 +60,15 @@ class TeamMemberUI {
      * Sets the highlight state for the UI.
      * @param {boolean} state The state to set (true or false).
      * @param {'target' | 'hover'} type The type of highlight.
+     * @param {object} [options] - Optional parameters.
+     * @param {number} [options.syncDelay] - A delay for synchronized animations.
      */
-    setHighlight(state, type) {
+    setHighlight(state, type, options = {}) {
         if (type === 'target') {
             if (this.isTargetable === state) return; // No change needed
             this.isTargetable = state;
-            // If becoming a target and not currently hovered, start wobbling.
-            // If no longer a target, stop wobbling.
             if (state && !this.isHovered) {
-                this.startWobble();
+                this.startWobble(options.syncDelay);
             } else {
                 this.stopWobble();
             }
@@ -82,7 +82,12 @@ class TeamMemberUI {
                     this.stopWobble();
                     this.scene.tweens.add({ targets: this.container, scale: 1.1, duration: 100, ease: 'Power2' });
                 } else { // Un-hovering from a target
-                    this.scene.tweens.add({ targets: this.container, scale: 1, duration: 100, ease: 'Power2', onComplete: () => this.startWobble() });
+                    // When un-hovering, restart the wobble with the original sync delay.
+                    const restartWobble = () => {
+                        // Check isTargetable again in case targeting mode ended while hovering.
+                        if (this.isTargetable) this.startWobble(options.syncDelay);
+                    };
+                    this.scene.tweens.add({ targets: this.container, scale: 1, duration: 100, ease: 'Power2', onComplete: restartWobble });
                 }
             }
         }
@@ -122,8 +127,9 @@ class TeamMemberUI {
 
     /**
      * Starts a continuous wobble animation to indicate a valid target.
+     * @param {number} [syncDelay] - An optional delay to synchronize animations across multiple UIs.
      */
-    startWobble() {
+    startWobble(syncDelay) {
         if (this.wobbleTween) return; // Already wobbling
 
         this.wobbleTween = this.scene.tweens.add({
@@ -133,8 +139,8 @@ class TeamMemberUI {
             ease: 'Sine.easeInOut',
             yoyo: true,
             repeat: -1,
-            // Random delay makes each target pulse out of sync with the others.
-            delay: Math.random() * 400
+            // Use provided syncDelay or a random one for desynchronization.
+            delay: syncDelay !== undefined ? syncDelay : Math.random() * 400
         });
     }
 
