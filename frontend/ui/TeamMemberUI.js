@@ -10,22 +10,27 @@ class TeamMemberUI {
      */
     constructor(scene, parentContainer, x, y) {
         this.scene = scene;
-        this.container = scene.add.container(x, y);
+        // Set the container's origin to its center for scaling animations.
+        // We adjust the position to account for the new origin.
+        this.container = scene.add.container(x + 90, y + 30);
         parentContainer.add(this.container);
-
-        // Make the container interactive to receive pointer events.
-        this.container.setSize(180, 60).setInteractive();
 
         // A background for the UI element to make it stand out
         this.background = scene.add.graphics();
+        // Define the interactive area on the background graphic itself. This prevents
+        // text elements from interfering with pointer events.
+        // The hitArea must also be adjusted for the new centered origin.
+        const hitArea = new Phaser.Geom.Rectangle(-90, -30, 180, 60);
+        this.background.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
         this.container.add(this.background);
 
         // Style for the text
         const nameStyle = { font: 'bold 18px Arial', fill: '#ffffff' };
         const hpStyle = { font: '16px Arial', fill: '#f0f0f0' };
-
-        this.nameText = scene.add.text(10, 8, '', nameStyle);
-        this.hpText = scene.add.text(10, 32, '', hpStyle);
+ 
+        // Adjust text positions to be relative to the new center origin.
+        this.nameText = scene.add.text(-80, -22, '', nameStyle);
+        this.hpText = scene.add.text(-80, 2, '', hpStyle);
 
         this.container.add([this.nameText, this.hpText]);
 
@@ -33,6 +38,7 @@ class TeamMemberUI {
         this.isCurrentPlayer = false;
         this.isTargetable = false;
         this.isHovered = false;
+        this.wobbleTween = null;
 
         this.drawBackground(); // Initial draw
     }
@@ -57,10 +63,30 @@ class TeamMemberUI {
      */
     setHighlight(state, type) {
         if (type === 'target') {
+            if (this.isTargetable === state) return; // No change needed
             this.isTargetable = state;
+            // If becoming a target and not currently hovered, start wobbling.
+            // If no longer a target, stop wobbling.
+            if (state && !this.isHovered) {
+                this.startWobble();
+            } else {
+                this.stopWobble();
+            }
         } else if (type === 'hover') {
+            if (this.isHovered === state) return; // No change needed
             this.isHovered = state;
+
+            // Only apply special hover logic if the element is a target.
+            if (this.isTargetable) {
+                if (state) { // Hovering over a target
+                    this.stopWobble();
+                    this.scene.tweens.add({ targets: this.container, scale: 1.1, duration: 100, ease: 'Power2' });
+                } else { // Un-hovering from a target
+                    this.scene.tweens.add({ targets: this.container, scale: 1, duration: 100, ease: 'Power2', onComplete: () => this.startWobble() });
+                }
+            }
         }
+
         this.drawBackground();
     }
 
@@ -70,26 +96,52 @@ class TeamMemberUI {
     drawBackground() {
         this.background.clear();
         this.background.fillStyle(0x000000, 0.6);
-        this.background.fillRoundedRect(0, 0, 180, 60, 8);
+        this.background.fillRoundedRect(-90, -30, 180, 60, 8);
 
         // The border color is determined by priority: hover > targetable > current player
         if (this.isHovered) {
-            this.background.lineStyle(3, 0x00ff00, 1); // Bright green for hover
-            this.background.strokeRoundedRect(0, 0, 180, 60, 8);
-        } else if (this.isTargetable) {
-            this.background.lineStyle(3, 0xff4500, 1); // Orange-red for targetable
-            this.background.strokeRoundedRect(0, 0, 180, 60, 8);
+            this.background.lineStyle(3, 0x00ff00, 1); // Bright green for hover. This takes priority over other borders.
+            this.background.strokeRoundedRect(-90, -30, 180, 60, 8);
         } else if (this.isCurrentPlayer) {
             this.background.lineStyle(3, 0xffd700, 1); // Gold border for highlight
-            this.background.strokeRoundedRect(0, 0, 180, 60, 8);
+            this.background.strokeRoundedRect(-90, -30, 180, 60, 8);
         }
+    }
+
+    /**
+     * Starts a continuous wobble animation to indicate a valid target.
+     */
+    startWobble() {
+        if (this.wobbleTween) return; // Already wobbling
+
+        this.wobbleTween = this.scene.tweens.add({
+            targets: this.container,
+            scale: 1.05, // Zoom in slightly
+            duration: 400, // Duration of one pulse
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1,
+            // Random delay makes each target pulse out of sync with the others.
+            delay: Math.random() * 400
+        });
+    }
+
+    /**
+     * Stops the wobble animation and resets the rotation.
+     */
+    stopWobble() {
+        if (this.wobbleTween) {
+            this.wobbleTween.stop();
+            this.wobbleTween = null;
+        }
+        this.container.setScale(1); // Reset scale
     }
 
     /**
      * Gets the main container for this UI element.
      */
     getContainer() {
-        return this.container;
+        return this.background;
     }
 
     /**
