@@ -13,11 +13,13 @@ class GameManager {
         this.pileManager = null;
         this.playManager = null;
         this.gridManager = null;
+        this.effectManager = null;
         this.players = new Map();
         this.playerStatsUIs = new Map();
         this.teamUIs = new Map(); // For the new side-panel team UI
         this.localPlayerId = 'player1'; // Assuming a local player for now
         this.isBulkOperationInProgress = false; // To lock actions during 'Discard All'
+        this.targetingState = null; // To manage card targeting
         this.deathText = null;
     }
     
@@ -41,10 +43,14 @@ class GameManager {
         });
 
         // Create managers
-        this.handManager = new HandManager(this.scene, this.mainContainer);
+        // Create a dedicated container for the hand so we can disable it independently.
+        const handContainer = this.scene.add.container(0, 0);
+        this.mainContainer.add(handContainer);
+        this.handManager = new HandManager(this.scene, handContainer);
         this.turnManager = new TurnManager(this.scene, this);
         this.pileManager = new PileManager(this.scene, this.mainContainer);
         this.playManager = new PlayManager(this.scene, this.handManager, this.pileManager);
+        this.effectManager = new EffectManager(this);
         this.gridManager = new GridManager(this.scene, this.mainContainer, {
             rows: this.maxPlayersPerTeam + 1,
             cols: 7
@@ -138,6 +144,10 @@ class GameManager {
             const isCurrentPlayer = player.playerId === this.localPlayerId;
             memberUI.update(player, isCurrentPlayer);
 
+            // Add targeting interaction
+            memberUI.getContainer().on('pointerdown', () => this.onTargetSelected(player));
+            memberUI.getContainer().on('pointerover', () => this.onTargetHover(memberUI, player, true));
+            memberUI.getContainer().on('pointerout', () => this.onTargetHover(memberUI, player, false));
             // Store the UI component to update it later
             this.teamUIs.set(player.playerId, memberUI);
         });
@@ -166,6 +176,11 @@ class GameManager {
      * Finds the selected card in hand and tells the PlayManager to play it.
      */
     playSelectedCard() {
+        // If we are already in targeting mode, do nothing.
+        if (this.targetingState) {
+            return;
+        }
+
         const selectedIndex = this.handManager.drawnCards.findIndex(card => card.selected);
 
         if (selectedIndex !== -1) {
@@ -178,18 +193,126 @@ class GameManager {
             if (player.mana >= manaCost) {
                 // Pause the timer while the card is being played.
                 this.turnManager.pauseTimer();
-
-                // Spend the mana.
-                this.applyManaCost(this.localPlayerId, manaCost);
-
-                // Clear the selection *before* queueing the card to be played.
-                this.handManager.clearSelection();
-                this.playManager.playCard(cardData.instanceId);
+                this.enterTargetingMode(cardData, cardInfo);
             } else {
                 // Not enough mana. For now, we just log it.
                 // The button will also be disabled, providing visual feedback.
                 console.log(`Not enough mana to play ${cardInfo.name}. Needs ${manaCost}, has ${player.mana}.`);
             }
+        }
+    }
+
+    /**
+     * Enters targeting mode for a card that requires a target.
+     * @param {object} cardData The card data from the hand.
+     * @param {object} cardInfo The static card info from the dictionary.
+     */
+    enterTargetingMode(cardData, cardInfo) {
+        const { target_type, target_scope } = cardInfo;
+
+        // If the card is global, it has no target. Play it immediately.
+        if (target_type === 'global' || !target_type) {
+            this.executePlay(cardData, cardInfo, null);
+            return;
+        }
+
+        // Set the targeting state.
+        this.targetingState = { cardData, cardInfo };
+        console.log(`Entering targeting mode for ${cardInfo.name}. Target type: ${target_type}, scope: ${target_scope}.`);
+
+        // Disable the hand and play/end turn buttons.
+        this.handManager.getContainer().disableInteractive();
+        this.handManager.playButton.disableInteractive();
+        this.handManager.endTurnButton.disableInteractive();
+
+        // Highlight valid targets.
+        this.updateTargetHighlights();
+
+        // TODO: Add a "Cancel" button or allow right-click to cancel.
+    }
+
+    /**
+     * Called when a player clicks on a potential target (e.g., a TeamMemberUI).
+     * @param {Player} targetPlayer The player object that was clicked.
+     */
+    onTargetSelected(targetPlayer) {
+        if (!this.targetingState) return;
+
+        const { cardInfo } = this.targetingState;
+
+        if (this.isValidTarget(targetPlayer, cardInfo.target_scope)) {
+            console.log(`Selected target: ${targetPlayer.name}`);
+            this.executePlay(this.targetingState.cardData, cardInfo, targetPlayer);
+        } else {
+            console.log(`${targetPlayer.name} is not a valid target.`);
+            // TODO: Add visual feedback for invalid target clicks (e.g., a "buzz" sound or red flash).
+        }
+    }
+
+    /**
+     * Executes the card play logic after a target has been selected (or if no target was needed).
+     * @param {object} cardData The card data from the hand.
+     * @param {object} cardInfo The static card info.
+     * @param {Player | null} target The selected target, or null for global cards.
+     */
+    executePlay(cardData, cardInfo, target) {
+        // Spend the mana.
+        this.applyManaCost(this.localPlayerId, cardInfo.cost?.mana || 0);
+
+        // Execute the card's specific play function.
+        cardInfo.play(this, target);
+
+        // Clear the selection *before* queueing the card to be played.
+        this.handManager.clearSelection();
+        this.playManager.playCard(cardData.instanceId);
+
+        // Exit targeting mode.
+        this.exitTargetingMode();
+    }
+
+    /**
+     * Resets the game state after targeting is complete or cancelled.
+     */
+    exitTargetingMode() {
+        this.targetingState = null;
+        this.handManager.getContainer().setInteractive();
+        this.handManager.playButton.setInteractive();
+        this.handManager.endTurnButton.setInteractive();
+        this.updateTargetHighlights(); // This will clear all highlights.
+    }
+
+    /**
+     * Checks if a player is a valid target based on the card's scope.
+     * @param {Player} targetPlayer The player to check.
+     * @param {string} scope The required scope ('ally', 'enemy', 'any').
+     * @returns {boolean}
+     */
+    isValidTarget(targetPlayer, scope) {
+        const localPlayer = this.players.get(this.localPlayerId);
+        if (scope === 'ally') return targetPlayer.team === localPlayer.team;
+        if (scope === 'enemy') return targetPlayer.team !== localPlayer.team;
+        if (scope === 'any') return true;
+        return false;
+    }
+
+    /**
+     * Updates the visual highlight on all potential targets.
+     */
+    updateTargetHighlights() {
+        const scope = this.targetingState?.cardInfo.target_scope;
+        this.teamUIs.forEach((ui, playerId) => {
+            const player = this.players.get(playerId);
+            const isValid = this.targetingState ? this.isValidTarget(player, scope) : false;
+            ui.setHighlight(isValid, 'target');
+        });
+    }
+
+    onTargetHover(memberUI, player, isHovering) {
+        if (!this.targetingState) return;
+
+        const scope = this.targetingState.cardInfo.target_scope;
+        if (this.isValidTarget(player, scope)) {
+            memberUI.setHighlight(isHovering, 'hover');
         }
     }
 

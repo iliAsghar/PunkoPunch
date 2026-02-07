@@ -10,6 +10,14 @@ window.CARD_DATA['ph7'] = {
         mana: 2,
     },
 
+    // target_type = 'team' / 'player' / 'board' / 'global'
+    target_type: 'player',
+
+    // target_scope = 'ally' / 'enemy' / 'any'
+    target_scope: 'enemy',
+
     // Function to execute when the card is played
-    play: (gameManager, player) => {}
+    play: (gameManager, target) => {
+        gameManager.effectManager.damagePlayer(target, 3);
+    }
 };

@@ -1,15 +1,22 @@
 window.CARD_DATA['ph1'] = {
     id: 'ph1',
-    name: 'Placeholder 1',
-    value: 1,
-    type: 'player',
-    description: 'A basic placeholder card.',
+    name: 'Quick Jab',
+    type: 'Attack',
+    description: 'Deal 3 damage to an enemy.',
 
     // Cost to play this card
     cost: {
         mana: 1,
     },
 
+    // target_type = 'team' / 'player' / 'board' / 'global'
+    target_type: 'player',
+
+    // target_scope = 'ally' / 'enemy' / 'any'
+    target_scope: 'enemy',
+
     // Function to execute when the card is played
-    play: (gameManager, player) => {}
+    play: (gameManager, target) => {
+        gameManager.effectManager.damagePlayer(target, 3);
+    }
 };

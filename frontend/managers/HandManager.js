@@ -7,13 +7,13 @@ class HandManager {
         this.scene = scene;
         this.drawnCards = [];
         this.cardObjects = []; // To hold the Card component instances
-        this.cardsContainer = this.scene.add.container(0, 0);
-        parentContainer.add(this.cardsContainer);
+        // The parentContainer is now the dedicated hand container from GameManager.
+        this.cardsContainer = parentContainer;
 
         // Set a size for the container. This is crucial for making the container itself
         // interactive, which allows us to enable/disable input for all its children at once.
-        const { width, height } = scene.game.config;
-        this.cardsContainer.setSize(width, height);
+        const { width, height } = this.scene.game.config; // Get game dimensions
+        this.cardsContainer.setSize(width, height).setInteractive(); // Set size and make it interactive
         
         // Hand display constants
         this.cardWidth = 120;

@@ -22,6 +22,7 @@
         'frontend/managers/GridManager.js',
         'frontend/managers/HandManager.js',
         'frontend/managers/PileManager.js', // This file is named turnmanager.js (lowercase)
+        'frontend/managers/EffectManager.js',
         'frontend/managers/turnmanager.js',
         'frontend/managers/PlayManager.js',
         'frontend/managers/GameManager.js',
@@ -68,6 +69,7 @@
                         type: 'unknown',
                         description: 'This card data could not be found.',
                         cost: {},
+                        target_type: 'global', // Default target type for unknown cards
                         play: () => {
                             console.error(`Play function not found for card ID: ${cardId}`);
                         }

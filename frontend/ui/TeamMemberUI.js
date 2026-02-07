@@ -13,6 +13,9 @@ class TeamMemberUI {
         this.container = scene.add.container(x, y);
         parentContainer.add(this.container);
 
+        // Make the container interactive to receive pointer events.
+        this.container.setSize(180, 60).setInteractive();
+
         // A background for the UI element to make it stand out
         this.background = scene.add.graphics();
         this.container.add(this.background);
@@ -26,7 +29,12 @@ class TeamMemberUI {
 
         this.container.add([this.nameText, this.hpText]);
 
-        this.drawBackground(false); // Initial draw
+        // State for highlighting
+        this.isCurrentPlayer = false;
+        this.isTargetable = false;
+        this.isHovered = false;
+
+        this.drawBackground(); // Initial draw
     }
 
     /**
@@ -38,22 +46,50 @@ class TeamMemberUI {
         if (!player) return;
         this.nameText.setText(player.name);
         this.hpText.setText(`HP: ${player.hp} / ${player.maxHp}`);
-        this.drawBackground(isCurrentPlayer);
+        this.isCurrentPlayer = isCurrentPlayer;
+        this.drawBackground();
     }
 
     /**
-     * Draws or redraws the background with an optional highlight.
-     * @param {boolean} isHighlighted - If true, draws a border to indicate the current player.
+     * Sets the highlight state for the UI.
+     * @param {boolean} state The state to set (true or false).
+     * @param {'target' | 'hover'} type The type of highlight.
      */
-    drawBackground(isHighlighted) {
+    setHighlight(state, type) {
+        if (type === 'target') {
+            this.isTargetable = state;
+        } else if (type === 'hover') {
+            this.isHovered = state;
+        }
+        this.drawBackground();
+    }
+
+    /**
+     * Draws or redraws the background based on its current state.
+     */
+    drawBackground() {
         this.background.clear();
         this.background.fillStyle(0x000000, 0.6);
         this.background.fillRoundedRect(0, 0, 180, 60, 8);
 
-        if (isHighlighted) {
+        // The border color is determined by priority: hover > targetable > current player
+        if (this.isHovered) {
+            this.background.lineStyle(3, 0x00ff00, 1); // Bright green for hover
+            this.background.strokeRoundedRect(0, 0, 180, 60, 8);
+        } else if (this.isTargetable) {
+            this.background.lineStyle(3, 0xff4500, 1); // Orange-red for targetable
+            this.background.strokeRoundedRect(0, 0, 180, 60, 8);
+        } else if (this.isCurrentPlayer) {
             this.background.lineStyle(3, 0xffd700, 1); // Gold border for highlight
             this.background.strokeRoundedRect(0, 0, 180, 60, 8);
         }
+    }
+
+    /**
+     * Gets the main container for this UI element.
+     */
+    getContainer() {
+        return this.container;
     }
 
     /**
